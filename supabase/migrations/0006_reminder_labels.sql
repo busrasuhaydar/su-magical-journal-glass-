@@ -1,0 +1,3 @@
+-- Hatırlatıcı metni tarih türünü de içerir (ör. "Open Call · Son başvuru · 7 gün kaldı").
+-- Fonksiyonun tamamı veritabanında 'reminder_labels' göçüyle güncellendi; 0005'teki regen_opp_reminders ile aynı,
+-- yalnız etiket: t || ' · ' || <tür adı> || ' · ' || <kalan gün>.

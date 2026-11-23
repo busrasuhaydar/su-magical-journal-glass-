@@ -1,0 +1,444 @@
+// Sergiler ve Fırsatlar: başvuru hattı, duyurudan otomatik kayıt, hazırlık planı ve hatırlatıcılar.
+import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { AlertTriangle, ArrowLeft, Bell, CalendarClock, CheckCircle2, ExternalLink, FileText, Link2, Plus, Sparkles, Upload, Wand2 } from 'lucide-react';
+import { PageHead } from '../components/Shell';
+import { TaskRow } from '../components/TaskRow';
+import { useEditors } from '../components/Editors';
+import { ConfirmButton, Dialog, Empty, Field, useToast } from '../components/ui';
+import { MediaSources } from '../components/Media';
+import { linkFile, uploadFile, useFiles, useOppDates, useOpportunities, useProjectOpps, useProjects, useRowMutation, useSignedUrl, useTasks } from '../lib/data';
+import { supabase } from '../lib/supabase';
+import { addDays, daysBetween, formatLong, formatRelative, formatShort, todayKey } from '../lib/dates';
+import { CONFIRMED_OPP, OPP_DATE_LABEL, OPP_KIND_LABEL, OPP_STATUS_COLOR, OPP_STATUS_LABEL, type FileRec, type OppDate, type OppDateKind, type OppKind, type OppStatus, type Opportunity, type RequiredDoc } from '../lib/types';
+
+const PIPE: OppStatus[] = ['to_review', 'potential', 'preparing', 'submitted', 'awaiting', 'accepted', 'exhibiting', 'completed', 'rejected', 'withdrawn'];
+const DATE_KINDS = Object.keys(OPP_DATE_LABEL) as OppDateKind[];
+const CUR = ['TRY', 'USD', 'EUR', 'GBP'];
+const fmtMoney = (n: number, c: string | null) => n.toLocaleString('tr-TR', { style: 'currency', currency: c ?? 'TRY', maximumFractionDigits: 2 });
+
+// ── Liste ──────────────────────────────────────────────
+export default function OpportunitiesPage() {
+  const { id } = useParams();
+  return id ? <OpportunityDetail id={id} /> : <OpportunityList />;
+}
+
+function OpportunityList() {
+  const opps = useOpportunities();
+  const dates = useOppDates();
+  const nav = useNavigate();
+  const [intake, setIntake] = useState(false);
+  const [view, setView] = useState<'pipe' | 'list'>('pipe');
+  const [kind, setKind] = useState('');
+  const today = todayKey();
+  const list = (opps.data ?? []).filter((o) => !kind || o.kind === kind);
+  const deadline = (o: Opportunity) => dates.data?.find((d) => d.opportunity_id === o.id && d.kind === 'deadline');
+  const soon = (dates.data ?? []).filter((d) => d.day >= today && d.day <= addDays(today, 30) && list.some((o) => o.id === d.opportunity_id)).slice(0, 8);
+
+  const Card = ({ o }: { o: Opportunity }) => {
+    const dl = deadline(o);
+    const left = dl ? daysBetween(today, dl.day) : null;
+    const confirmed = CONFIRMED_OPP.includes(o.status);
+    return (
+      <Link to={`/firsatlar/${o.id}`} className={`opp-card${confirmed ? ' confirmed' : ''}`}>
+        <div className="row" style={{ justifyContent: 'space-between', gap: 6 }}><span className="chip" style={{ padding: '1px 8px' }}>{OPP_KIND_LABEL[o.kind]}</span>{confirmed && <span className="small" style={{ color: 'var(--ok)', fontWeight: 700 }}>✓ Kesin</span>}</div>
+        <b>{o.title}</b>
+        <span className="small muted">{[o.organization ?? o.gallery, o.city, o.country].filter(Boolean).join(' · ') || '—'}</span>
+        {dl && <span className="small" style={{ color: left! < 0 ? 'var(--ink-500)' : left! <= 7 ? 'var(--bad)' : left! <= 30 ? 'var(--orange-600)' : 'var(--ink-700)', fontWeight: 600 }}>
+          <CalendarClock size={12} /> Son başvuru {formatShort(dl.day)}{left! >= 0 ? ` · ${left} gün` : ' · geçti'}{dl.certainty !== 'confirmed' ? ' (kesinleşmedi)' : ''}</span>}
+        {o.required_docs.length > 0 && <div className="prog" style={{ height: 4 }}><b style={{ width: `${(o.required_docs.filter((d) => d.done).length / o.required_docs.length) * 100}%` }} /></div>}
+      </Link>
+    );
+  };
+
+  return (
+    <>
+      <PageHead title="Sergiler ve Fırsatlar">
+        <div className="seg"><button type="button" className={view === 'pipe' ? 'on' : ''} onClick={() => setView('pipe')}>Başvuru hattı</button><button type="button" className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}>Liste</button></div>
+        <button type="button" className="btn btn-glass" onClick={() => setIntake(true)}><Plus size={15} />Elle ekle</button>
+        <button type="button" className="btn btn-primary" onClick={() => setIntake(true)}><Wand2 size={15} />Duyurudan ekle</button>
+      </PageHead>
+      {soon.length > 0 && (
+        <section className="glass panel">
+          <div className="panel-head"><h2>Önümüzdeki 30 gün</h2></div>
+          <div className="row">{soon.map((d) => { const o = list.find((x) => x.id === d.opportunity_id)!; return (
+            <button type="button" key={d.id} className="chip" style={{ cursor: 'pointer', padding: '7px 12px', borderStyle: d.certainty === 'confirmed' ? 'solid' : 'dashed' }} onClick={() => nav(`/firsatlar/${o.id}`)}>
+              <b>{formatShort(d.day)}</b> · {OPP_DATE_LABEL[d.kind]} · {o.title}
+            </button>); })}</div>
+        </section>
+      )}
+      <div className="row">
+        <select id="ok-kind" className="select" style={{ width: 'auto' }} value={kind} onChange={(e) => setKind(e.target.value)}><option value="">Tüm türler</option>{Object.entries(OPP_KIND_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+        <span className="small muted">Kesik kenarlı kartlar potansiyel fırsat, düz kenarlılar kesinleşmiş sergiler.</span>
+      </div>
+      {!opps.isLoading && list.length === 0 && <section className="glass panel"><Empty title="Henüz fırsat yok">Bir açık çağrı metnini yapıştırın, PDF yükleyin veya bağlantı verin; tarihler, şartlar ve hazırlık görevleri kendiliğinden çıkarılsın.</Empty></section>}
+      {view === 'pipe' && list.length > 0 && (
+        <div className="pipe">
+          {PIPE.filter((s) => list.some((o) => o.status === s) || ['to_review', 'potential', 'preparing', 'submitted', 'awaiting', 'accepted'].includes(s)).map((s) => (
+            <div key={s} className="pipe-col">
+              <div className="kcol-head"><i className="dot" style={{ background: OPP_STATUS_COLOR[s] }} /><b className="small">{OPP_STATUS_LABEL[s]}</b><span className="count">{list.filter((o) => o.status === s).length}</span></div>
+              {list.filter((o) => o.status === s).map((o) => <Card key={o.id} o={o} />)}
+            </div>
+          ))}
+        </div>
+      )}
+      {view === 'list' && <div className="cards">{list.map((o) => <Card key={o.id} o={o} />)}</div>}
+      {intake && <IntakeDialog onClose={() => setIntake(false)} onCreated={(newId) => nav(`/firsatlar/${newId}`)} />}
+    </>
+  );
+}
+
+// ── Duyurudan ekleme ───────────────────────────────────
+type Extracted = {
+  title: string; kind: OppKind; organization?: string | null; gallery?: string | null; city?: string | null; country?: string | null;
+  fee_amount?: number | null; fee_currency?: string | null; fee_note?: string | null; requirements?: string | null; artwork_requirements?: string | null;
+  required_documents: string[]; application_url?: string | null; contact?: { name?: string | null; email?: string | null; phone?: string | null };
+  dates: { kind: OppDateKind; date: string; time?: string | null; certainty: 'confirmed' | 'uncertain' | 'conflicting'; evidence: string }[];
+  suggested_tasks: { title: string; days_before_deadline: number; reason?: string }[]; warnings: string[]; confidence?: Record<string, string>;
+};
+const EMPTY: Extracted = { title: '', kind: 'open_call', required_documents: [], dates: [], suggested_tasks: [], warnings: [] };
+
+function toB64(file: File) {
+  return new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
+}
+
+function IntakeDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
+  const toast = useToast();
+  const qc = useQueryClient();
+  const [mode, setMode] = useState<'text' | 'pdf' | 'url' | 'manual'>('text');
+  const [text, setText] = useState('');
+  const [url, setUrl] = useState('');
+  const [pdf, setPdf] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [ex, setEx] = useState<Extracted | null>(null);
+  const [src, setSrc] = useState<{ text: string | null; url: string | null }>({ text: null, url: null });
+  const [makeTasks, setMakeTasks] = useState(true);
+  const input = useRef<HTMLInputElement>(null);
+
+  async function analyze() {
+    setErr(''); setBusy(true);
+    try {
+      const body: Record<string, string> = {};
+      if (mode === 'text') { if (text.trim().length < 40) throw new Error('Biraz daha uzun bir duyuru metni yapıştırın.'); body.text = text; }
+      if (mode === 'url') { let u = url.trim(); if (!/^https?:\/\//i.test(u)) u = 'https://' + u; new URL(u); body.url = u; }
+      if (mode === 'pdf') { if (!pdf) throw new Error('Bir PDF seçin.'); if (pdf.size > 20 * 1024 * 1024) throw new Error('PDF en fazla 20 MB olabilir.'); body.pdf_base64 = await toB64(pdf); }
+      const { data, error } = await supabase.functions.invoke('extract-opportunity', { body });
+      if (error) {
+        let msg = error.message;
+        try { const j = await (error as { context?: Response }).context?.json(); if (j?.error) msg = j.error; } catch { /* yok say */ }
+        throw new Error(msg);
+      }
+      setEx({ ...EMPTY, ...data.data });
+      setSrc({ text: data.source_text ?? (mode === 'text' ? text : null), url: mode === 'url' ? body.url : null });
+    } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
+  }
+
+  async function create() {
+    if (!ex || !ex.title.trim()) return setErr('Başlık gerekli.');
+    setBusy(true);
+    try {
+      let source_file_id: string | null = null;
+      if (pdf) { const { rec } = await uploadFile(pdf); source_file_id = rec.id; }
+      const { data: o, error } = await supabase.from('opportunities').insert({
+        title: ex.title.trim(), kind: ex.kind, organization: ex.organization || null, gallery: ex.gallery || null, city: ex.city || null, country: ex.country || null,
+        fee_amount: ex.fee_amount ?? null, fee_currency: ex.fee_amount != null ? ex.fee_currency || 'TRY' : null, fee_note: ex.fee_note || null,
+        requirements: ex.requirements || null, artwork_requirements: ex.artwork_requirements || null,
+        required_docs: ex.required_documents.map((label) => ({ label, done: false })), application_url: ex.application_url || null,
+        contact: ex.contact ?? {}, status: 'to_review', source_text: src.text, source_url: src.url, source_file_id,
+        extraction: mode === 'manual' ? null : { warnings: ex.warnings, confidence: ex.confidence ?? {}, suggested_tasks: ex.suggested_tasks, at: new Date().toISOString() },
+      }).select().single();
+      if (error) throw error;
+      if (ex.dates.length) {
+        const seen = new Set<string>();
+        const rows = ex.dates.filter((d) => !seen.has(d.kind) && seen.add(d.kind)).map((d) => ({ opportunity_id: o.id, kind: d.kind, day: d.date, time_text: d.time || null, certainty: d.certainty, evidence: d.evidence || null }));
+        const { error: e2 } = await supabase.from('opportunity_dates').insert(rows); if (e2) throw e2;
+      }
+      const dl = ex.dates.find((d) => d.kind === 'deadline');
+      if (makeTasks && ex.suggested_tasks.length) {
+        const rows = ex.suggested_tasks.map((t) => ({ title: t.title, description: t.reason ?? null, opportunity_id: o.id, category: 'Başvuru', priority: 'high',
+          due_date: dl ? clampDue(addDays(dl.date, -Math.max(0, t.days_before_deadline))) : null, source: 'ai' }));
+        const { error: e3 } = await supabase.from('tasks').insert(rows); if (e3) throw e3;
+      }
+      ['opps', 'tasks', 'cal', 'year'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      toast.ok('Fırsat oluşturuldu; tarihler takvime, hatırlatıcılar sıraya eklendi');
+      onClose(); onCreated(o.id);
+    } catch (x) { toast.fail(x); } finally { setBusy(false); }
+  }
+
+  const set = <K extends keyof Extracted>(k: K, v: Extracted[K]) => setEx((s) => (s ? { ...s, [k]: v } : s));
+  return (
+    <Dialog title={ex ? 'Kontrol edin ve kaydedin' : 'Yeni fırsat'} onClose={onClose} wide>
+      {!ex ? (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <div className="seg">{([['text', 'Metni yapıştır'], ['pdf', 'PDF yükle'], ['url', 'Bağlantı'], ['manual', 'Elle gir']] as const).map(([k, l]) => <button type="button" key={k} className={mode === k ? 'on' : ''} onClick={() => setMode(k)}>{l}</button>)}</div>
+          {mode === 'text' && <textarea id="in-text" className="textarea" style={{ minHeight: 220 }} value={text} onChange={(e) => setText(e.target.value)} placeholder="Açık çağrı, sergi veya yarışma duyurusunun tamamını buraya yapıştırın…" />}
+          {mode === 'url' && <input id="in-url" className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://… duyuru sayfası" />}
+          {mode === 'pdf' && <div className="dropzone"><button type="button" className="btn btn-glass btn-sm" onClick={() => input.current?.click()}><Upload size={14} />PDF seç</button> {pdf?.name}<input ref={input} id="in-pdf" type="file" accept="application/pdf" hidden onChange={(e) => setPdf(e.target.files?.[0] ?? null)} /></div>}
+          {mode !== 'manual' && <p className="small muted" style={{ margin: 0 }}>Yapay zekâ yalnız kaynakta yazanı çıkarır. Belirsiz veya çelişkili bilgiler işaretlenir; eksik tarih uydurulmaz. Kaydetmeden önce her şeyi kontrol edebilirsiniz.</p>}
+          {err && <div className="error">{err}</div>}
+          <div className="foot"><span /><div className="row">
+            <button type="button" className="btn btn-ghost" onClick={onClose}>Vazgeç</button>
+            {mode === 'manual' ? <button type="button" className="btn btn-primary" onClick={() => setEx({ ...EMPTY })}>Devam</button>
+              : <button type="button" className="btn btn-primary" disabled={busy} onClick={analyze}><Sparkles size={15} />{busy ? 'Analiz ediliyor…' : 'Analiz et'}</button>}
+          </div></div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 12 }}>
+          {ex.warnings.length > 0 && <div className="warn-box"><b className="row" style={{ gap: 6 }}><AlertTriangle size={15} />Dikkat edilmesi gerekenler</b><ul>{ex.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul></div>}
+          <div className="grid-3">
+            <div style={{ gridColumn: 'span 2' }}><Field label={`Başlık${conf(ex, 'title')}`}><input id="ex-title" className="input" value={ex.title} onChange={(e) => set('title', e.target.value)} /></Field></div>
+            <Field label="Tür"><select id="ex-kind" className="select" value={ex.kind} onChange={(e) => set('kind', e.target.value as OppKind)}>{Object.entries(OPP_KIND_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
+            <Field label="Kurum"><input id="ex-org" className="input" value={ex.organization ?? ''} onChange={(e) => set('organization', e.target.value)} /></Field>
+            <Field label="Şehir"><input id="ex-city" className="input" value={ex.city ?? ''} onChange={(e) => set('city', e.target.value)} /></Field>
+            <Field label="Ülke"><input id="ex-country" className="input" value={ex.country ?? ''} onChange={(e) => set('country', e.target.value)} /></Field>
+            <Field label={`Ücret${conf(ex, 'fee')}`}><input id="ex-fee" className="input" inputMode="decimal" value={ex.fee_amount ?? ''} onChange={(e) => set('fee_amount', e.target.value === '' ? null : Number(e.target.value.replace(',', '.')))} placeholder="Yok / bilinmiyor" /></Field>
+            <Field label="Para birimi"><select id="ex-cur" className="select" value={ex.fee_currency ?? 'TRY'} onChange={(e) => set('fee_currency', e.target.value)}>{CUR.map((c) => <option key={c}>{c}</option>)}</select></Field>
+            <Field label="Başvuru adresi"><input id="ex-url" className="input" value={ex.application_url ?? ''} onChange={(e) => set('application_url', e.target.value)} /></Field>
+          </div>
+          <div>
+            <b className="small">Tarihler{conf(ex, 'dates')}</b>
+            <div style={{ display: 'grid', gap: 6, marginTop: 6 }}>
+              {ex.dates.map((d, i) => (
+                <div key={i} className="date-row" style={{ borderColor: d.certainty === 'confirmed' ? undefined : 'var(--orange-500)' }}>
+                  <select id={`exd-k-${i}`} className="select" value={d.kind} onChange={(e) => set('dates', ex.dates.map((x, j) => (j === i ? { ...x, kind: e.target.value as OppDateKind } : x)))}>{DATE_KINDS.map((k) => <option key={k} value={k}>{OPP_DATE_LABEL[k]}</option>)}</select>
+                  <input id={`exd-d-${i}`} type="date" className="input" value={d.date} onChange={(e) => set('dates', ex.dates.map((x, j) => (j === i ? { ...x, date: e.target.value, certainty: 'confirmed' as const } : x)))} />
+                  <span className="small" style={{ color: d.certainty === 'confirmed' ? 'var(--ok)' : 'var(--orange-600)', fontWeight: 600 }}>{d.certainty === 'confirmed' ? 'Kesin' : d.certainty === 'uncertain' ? 'Belirsiz' : 'Çelişkili'}{d.time ? ` · ${d.time}` : ''}</span>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => set('dates', ex.dates.filter((_, j) => j !== i))}>Kaldır</button>
+                  {d.evidence && <q className="small muted" style={{ gridColumn: '1 / -1' }}>{d.evidence}</q>}
+                </div>
+              ))}
+              <button type="button" className="btn btn-ghost btn-sm" style={{ justifySelf: 'start' }} onClick={() => set('dates', [...ex.dates, { kind: 'deadline', date: todayKey(), certainty: 'confirmed', evidence: '' }])}><Plus size={13} />Tarih ekle</button>
+            </div>
+          </div>
+          <div className="grid-2">
+            <Field label={`Katılım şartları${conf(ex, 'requirements')}`}><textarea id="ex-req" className="textarea" value={ex.requirements ?? ''} onChange={(e) => set('requirements', e.target.value)} /></Field>
+            <Field label="Eser şartları"><textarea id="ex-art" className="textarea" value={ex.artwork_requirements ?? ''} onChange={(e) => set('artwork_requirements', e.target.value)} /></Field>
+          </div>
+          <Field label="İstenen belgeler (her satıra bir tane)"><textarea id="ex-docs" className="textarea" value={ex.required_documents.join('\n')} onChange={(e) => set('required_documents', e.target.value.split('\n').map((s) => s.trim()).filter(Boolean))} /></Field>
+          {ex.suggested_tasks.length > 0 && (
+            <div className="card" style={{ display: 'grid', gap: 6 }}>
+              <label className="row small" style={{ gap: 8, cursor: 'pointer' }}><input id="ex-mk" type="checkbox" checked={makeTasks} onChange={(e) => setMakeTasks(e.target.checked)} /><b>Hazırlık görevlerini oluştur ({ex.suggested_tasks.length}) · son başvurudan geriye planlanır</b></label>
+              {makeTasks && ex.suggested_tasks.map((t, i) => <span key={i} className="small">• {t.title} <span className="muted">· son tarihten {t.days_before_deadline} gün önce</span></span>)}
+            </div>
+          )}
+          {err && <div className="error">{err}</div>}
+          <div className="foot"><button type="button" className="btn btn-ghost" onClick={() => setEx(null)}><ArrowLeft size={14} />Geri</button><div className="row">
+            <button type="button" className="btn btn-ghost" onClick={onClose}>Vazgeç</button>
+            <button type="button" className="btn btn-primary" disabled={busy} onClick={create}>{busy ? 'Kaydediliyor…' : 'Fırsatı oluştur'}</button>
+          </div></div>
+        </div>
+      )}
+    </Dialog>
+  );
+}
+const conf = (ex: Extracted, k: string) => { const c = ex.confidence?.[k]; return c === 'low' ? ' · düşük güven' : c === 'medium' ? ' · orta güven' : ''; };
+const clampDue = (d: string) => (d < todayKey() ? todayKey() : d);
+
+// ── Detay ──────────────────────────────────────────────
+function useReminders(oppId: string, dateIds: string[]) {
+  return useQuery({
+    queryKey: ['reminders', oppId, dateIds.join(',')], enabled: dateIds.length > 0,
+    queryFn: async () => { const { data, error } = await supabase.from('reminders').select('*').in('opportunity_date_id', dateIds).order('remind_at'); if (error) throw error; return data as { id: string; remind_at: string; label: string; sent_at: string | null }[]; },
+  });
+}
+
+function OpportunityDetail({ id }: { id: string }) {
+  const opps = useOpportunities();
+  const dates = useOppDates();
+  const tasks = useTasks();
+  const projects = useProjects();
+  const links = useProjectOpps();
+  const files = useFiles();
+  const nav = useNavigate();
+  const qc = useQueryClient();
+  const toast = useToast();
+  const { openTask } = useEditors();
+  const mut = useRowMutation('opportunities', ['opps']);
+  const dateMut = useRowMutation('opportunity_dates', ['opps', 'cal', 'year', 'reminders']);
+  const linkMut = useRowMutation('project_opportunities', ['opps']);
+  const [showSrc, setShowSrc] = useState(false);
+  const o = opps.data?.find((x) => x.id === id);
+  const myDates = useMemo(() => (dates.data ?? []).filter((d) => d.opportunity_id === id).sort((a, b) => a.day.localeCompare(b.day)), [dates.data, id]);
+  const rem = useReminders(id, myDates.map((d) => d.id));
+  const srcFile = files.data?.find((f) => f.id === o?.source_file_id);
+  const srcUrl = useSignedUrl(srcFile?.storage_path);
+  if (opps.isLoading) return <p className="muted">Yükleniyor…</p>;
+  if (!o) return <Empty title="Fırsat bulunamadı"><Link to="/firsatlar">Listeye dön</Link></Empty>;
+  const prep = (tasks.data ?? []).filter((t) => t.opportunity_id === o.id && t.status !== 'cancelled');
+  const dl = myDates.find((d) => d.kind === 'deadline');
+  const today = todayKey();
+  const upd = (row: Partial<Opportunity>) => mut.mutate({ op: 'update', id: o.id, row: row as Record<string, unknown> }, { onError: (x) => toast.fail(x) });
+  const myProjects = (links.data ?? []).filter((l) => l.opportunity_id === o.id);
+  const docs = o.required_docs ?? [];
+  const missing = docs.filter((d) => !d.done);
+
+  async function attachDoc(input: File[] | FileRec[], idx: number) {
+    if (!input[0]) return;
+    try {
+      const first = input[0]; const rec = first instanceof File ? (await uploadFile(first)).rec : first;
+      if (myProjects[0]) await linkFile(rec.id, 'project', myProjects[0].project_id);
+      upd({ required_docs: docs.map((d, i) => (i === idx ? { ...d, done: true, file_id: rec.id } : d)) });
+      qc.invalidateQueries({ queryKey: ['files'] }); toast.ok('Belge eklendi');
+    } catch (x) { toast.fail(x); } }
+  async function planPrep() {
+    const base = dl?.day;
+    const existing = new Set(prep.map((t) => t.title.toLocaleLowerCase('tr')));
+    const plan: [string, number][] = [
+      ...missing.map((d): [string, number] => [`${d.label} hazırla`, 10]),
+      ['Başvuru formunu doldur', 3], ...(o!.fee_amount ? [['Başvuru ücretini öde', 2] as [string, number]] : []), ['Başvuruyu gönder ve onayını kaydet', 1],
+      ...(myDates.some((d) => d.kind === 'delivery') ? [['Eser teslimatını planla', 14] as [string, number]] : []),
+      ...(myDates.some((d) => d.kind === 'opening') ? [['Sergi tanıtımını hazırla', 7] as [string, number]] : []),
+    ];
+    const rows = plan.filter(([t]) => !existing.has(t.toLocaleLowerCase('tr'))).map(([title, before]) => ({
+      title, opportunity_id: o!.id, project_id: myProjects[0]?.project_id ?? null, category: 'Başvuru', priority: 'high', source: 'template',
+      due_date: base ? clampDue(addDays(title.includes('teslimat') && myDates.find((d) => d.kind === 'delivery') ? myDates.find((d) => d.kind === 'delivery')!.day : title.includes('tanıtım') ? myDates.find((d) => d.kind === 'opening')!.day : base, -before)) : null,
+    }));
+    if (!rows.length) return toast.ok('Hazırlık planı zaten güncel');
+    const { error } = await supabase.from('tasks').insert(rows);
+    if (error) return toast.fail(error);
+    ['tasks', 'cal', 'year'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+    toast.ok(`${rows.length} hazırlık görevi eklendi${base ? ' · son başvurudan geriye planlandı' : ''}`);
+    if (o!.status === 'to_review' || o!.status === 'potential') upd({ status: 'preparing' });
+  }
+
+  return (
+    <>
+      <PageHead title={o.title}>
+        <Link className="btn btn-glass btn-sm" to="/firsatlar"><ArrowLeft size={14} />Tüm fırsatlar</Link>
+        <select id="od-status" className="select" style={{ width: 'auto', borderColor: OPP_STATUS_COLOR[o.status], fontWeight: 600 }} value={o.status} onChange={(e) => upd({ status: e.target.value as OppStatus })}>
+          {PIPE.map((s) => <option key={s} value={s}>{OPP_STATUS_LABEL[s]}</option>)}
+        </select>
+      </PageHead>
+      {o.extraction && Array.isArray((o.extraction as { warnings?: string[] }).warnings) && (o.extraction as { warnings: string[] }).warnings.length > 0 && (
+        <div className="warn-box"><b className="row" style={{ gap: 6 }}><AlertTriangle size={15} />Duyuruda belirsiz bilgiler var</b><ul>{(o.extraction as { warnings: string[] }).warnings.map((w, i) => <li key={i}>{w}</li>)}</ul></div>
+      )}
+      {dl && dl.day >= today && missing.length > 0 && (
+        <div className="card row" style={{ borderColor: 'var(--orange-500)', gap: 10 }}>
+          <AlertTriangle size={18} color="var(--orange-600)" />
+          <span style={{ flex: 1 }}>Son başvuru <b>{formatLong(dl.day)}</b> ({daysBetween(today, dl.day)} gün). Henüz hazır olmayan belgeler: <b>{missing.map((d) => d.label).join(', ')}</b>.</span>
+          <button type="button" className="btn btn-primary btn-sm" onClick={planPrep}><Wand2 size={13} />Hazırlık planı oluştur</button>
+        </div>
+      )}
+      <div className="day-grid">
+        <div style={{ display: 'grid', gap: 'var(--s5)' }}>
+          <section className="glass panel">
+            <h2 style={{ marginBottom: 12 }}>Kritik tarihler</h2>
+            <div style={{ display: 'grid', gap: 6 }}>
+              {myDates.map((d) => (
+                <div key={d.id} className="date-row" style={{ borderStyle: d.certainty === 'confirmed' ? 'solid' : 'dashed', borderColor: d.certainty === 'confirmed' ? undefined : 'var(--orange-500)' }}>
+                  <b>{OPP_DATE_LABEL[d.kind]}</b>
+                  <input id={`od-d-${d.id}`} type="date" className="input" value={d.day} onChange={(e) => e.target.value && dateMut.mutate({ op: 'update', id: d.id, row: { day: e.target.value, certainty: 'confirmed' } }, { onError: (x) => toast.fail(x) })} />
+                  <span className="small" style={{ color: d.day < today ? 'var(--ink-500)' : 'var(--ink-700)' }}>{formatRelative(d.day)}{d.time_text ? ` · ${d.time_text}` : ''}{d.certainty !== 'confirmed' && <b style={{ color: 'var(--orange-600)' }}> · {d.certainty === 'uncertain' ? 'belirsiz' : 'çelişkili'}</b>}</span>
+                  <ConfirmButton label="Sil" className="btn btn-ghost btn-sm" confirmText="Tarih silinsin mi?" onConfirm={() => dateMut.mutate({ op: 'hard_delete', id: d.id })} />
+                  {d.evidence && <q className="small muted" style={{ gridColumn: '1 / -1' }}>{d.evidence}</q>}
+                </div>
+              ))}
+              <AddDate oppId={o.id} existing={myDates} />
+            </div>
+            <p className="small muted">Tarihler ana takvimde görünür. Değiştirdiğinizde hatırlatıcılar kendiliğinden yeniden kurulur.</p>
+          </section>
+
+          <section className="glass panel">
+            <div className="panel-head"><h2>Hazırlık görevleri</h2><div className="row"><button type="button" className="btn btn-glass btn-sm" onClick={planPrep}><Wand2 size={13} />Plan öner</button><button type="button" className="btn btn-primary btn-sm" onClick={() => openTask({ opportunity_id: o.id, project_id: myProjects[0]?.project_id ?? null, category: 'Başvuru' })}><Plus size={13} />Görev</button></div></div>
+            {prep.length === 0 ? <p className="small muted">Henüz görev yok.</p> : <div className="task-list">{prep.sort((a, b) => (a.due_date ?? '9').localeCompare(b.due_date ?? '9')).map((t) => <TaskRow key={t.id} task={t} />)}</div>}
+            {prep.length > 0 && <p className="small muted">{prep.filter((t) => t.status === 'done').length}/{prep.length} tamamlandı · görevler takviminizde ve bağlı projede de görünür.</p>}
+          </section>
+
+          <section className="glass panel">
+            <div className="panel-head"><h2>İstenen belgeler</h2><span className="small muted">{docs.filter((d) => d.done).length}/{docs.length} hazır</span></div>
+            {docs.map((d, i) => (
+              <div key={i} className="task-row" style={{ cursor: 'default', alignItems: 'center' }}>
+                <button type="button" className={`check${d.done ? ' on' : ''}`} onClick={() => upd({ required_docs: docs.map((x, j) => (j === i ? { ...x, done: !x.done } : x)) })} aria-label="Hazır">{d.done && <CheckCircle2 size={14} />}</button>
+                <div className="t"><b style={{ textDecoration: d.done ? 'line-through' : undefined }}>{d.label}</b>{d.file_id && <span className="small muted"> · {files.data?.find((f) => f.id === d.file_id)?.title}</span>}</div>
+                <MediaSources id={`od-doc-${i}`} size="xs" multiple={false} onFiles={(f) => attachDoc(f, i)} onPicked={(f) => attachDoc(f, i)} />
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => upd({ required_docs: docs.filter((_, j) => j !== i) })}>Kaldır</button>
+              </div>
+            ))}
+            <form className="row" style={{ marginTop: 8 }} onSubmit={(e: FormEvent) => { e.preventDefault(); const inp = ((e.currentTarget as HTMLFormElement).elements.namedItem('nd') as HTMLInputElement); if (!inp.value.trim()) return; upd({ required_docs: [...docs, { label: inp.value.trim(), done: false } as RequiredDoc] }); inp.value = ''; }}>
+              <input id="od-newdoc" name="nd" className="input" style={{ flex: 1, width: 'auto' }} placeholder="Belge ekle (ör. Sanatçı beyanı)" /><button className="btn btn-glass btn-sm">Ekle</button>
+            </form>
+          </section>
+        </div>
+
+        <div style={{ display: 'grid', gap: 'var(--s5)', alignContent: 'start' }}>
+          <DetailsForm o={o} onSave={upd} />
+          <section className="glass panel">
+            <h3 className="row" style={{ gap: 6, marginBottom: 8 }}><Link2 size={16} />Bağlı projeler</h3>
+            <div className="row">
+              {myProjects.map((l) => { const p = projects.data?.find((x) => x.id === l.project_id); return p && <span key={l.id} className="chip"><Link to={`/projeler/${p.slug}/firsatlar`} style={{ color: 'inherit' }}>{p.icon ?? '✦'} {p.title}</Link><button type="button" onClick={() => linkMut.mutate({ op: 'hard_delete', id: l.id })} aria-label="Bağlantıyı kaldır" style={{ border: 0, background: 'none', cursor: 'pointer', padding: 0 }}>×</button></span>; })}
+              <select id="od-proj" className="select" style={{ width: 'auto', padding: '5px 8px', fontSize: 12.5 }} value="" onChange={(e) => e.target.value && linkMut.mutate({ op: 'insert', row: { project_id: e.target.value, opportunity_id: o.id } }, { onError: (x) => toast.fail(x) })}>
+                <option value="">Projeye bağla…</option>{projects.data?.filter((p) => !myProjects.some((l) => l.project_id === p.id)).map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+              </select>
+            </div>
+          </section>
+          <section className="glass panel">
+            <h3 className="row" style={{ gap: 6, marginBottom: 8 }}><Bell size={16} />Hatırlatıcılar</h3>
+            {(rem.data ?? []).filter((r) => !r.sent_at).length === 0 ? <p className="small muted">Bekleyen hatırlatıcı yok.</p> : (
+              <div style={{ display: 'grid', gap: 4 }}>{rem.data!.filter((r) => !r.sent_at).map((r) => <span key={r.id} className="small">{formatShort(r.remind_at.slice(0, 10))} 09:00 · {r.label}</span>)}</div>
+            )}
+            <p className="small muted">Son başvuru için 30, 14, 7, 3 gün önce ve son gün; diğer tarihler için 1 gün önce ve günün kendisi. <Link to="/ayarlar">Ayarlar</Link>'dan değiştirebilirsiniz. Bildirim gönderimi Faz 4'te.</p>
+          </section>
+          <section className="glass panel">
+            <h3 className="row" style={{ gap: 6, marginBottom: 8 }}><FileText size={16} />Kaynak</h3>
+            {o.source_url && <a className="small" href={o.source_url} target="_blank" rel="noopener noreferrer">{o.source_url.slice(0, 60)} <ExternalLink size={11} /></a>}
+            {srcFile && srcUrl.data && <a className="small" href={srcUrl.data} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>📎 {srcFile.title}</a>}
+            {o.source_text && <><button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowSrc(!showSrc)}>{showSrc ? 'Metni gizle' : 'Orijinal metni göster'}</button>{showSrc && <pre className="src-text">{o.source_text}</pre>}</>}
+            {!o.source_url && !srcFile && !o.source_text && <p className="small muted">Elle girildi.</p>}
+          </section>
+          <ConfirmButton label="Fırsatı sil" className="btn btn-ghost btn-sm" confirmText="Fırsat çöp kutusuna taşınsın mı? Görevleri silinmez."
+            onConfirm={() => mut.mutate({ op: 'delete', id: o.id }, { onSuccess: () => nav('/firsatlar') })} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function AddDate({ oppId, existing }: { oppId: string; existing: OppDate[] }) {
+  const mut = useRowMutation('opportunity_dates', ['opps', 'cal', 'year', 'reminders']);
+  const toast = useToast();
+  const free = DATE_KINDS.filter((k) => !existing.some((d) => d.kind === k));
+  const [kind, setKind] = useState<OppDateKind>(free[0] ?? 'deadline');
+  const [day, setDay] = useState('');
+  if (!free.length) return null;
+  return (
+    <form className="row" onSubmit={(e) => { e.preventDefault(); if (!day) return; mut.mutate({ op: 'insert', row: { opportunity_id: oppId, kind, day } }, { onSuccess: () => setDay(''), onError: (x) => toast.fail(x) }); }}>
+      <select id="ad-kind" className="select" style={{ width: 'auto' }} value={kind} onChange={(e) => setKind(e.target.value as OppDateKind)}>{free.map((k) => <option key={k} value={k}>{OPP_DATE_LABEL[k]}</option>)}</select>
+      <input id="ad-day" type="date" className="input" style={{ width: 'auto' }} value={day} onChange={(e) => setDay(e.target.value)} />
+      <button className="btn btn-glass btn-sm" disabled={!day}><Plus size={13} />Ekle</button>
+    </form>
+  );
+}
+
+function DetailsForm({ o, onSave }: { o: Opportunity; onSave: (r: Partial<Opportunity>) => void }) {
+  const [f, setF] = useState({ organization: o.organization ?? '', gallery: o.gallery ?? '', city: o.city ?? '', country: o.country ?? '', fee: o.fee_amount != null ? String(o.fee_amount) : '', cur: o.fee_currency ?? 'TRY', fee_note: o.fee_note ?? '',
+    application_url: o.application_url ?? '', requirements: o.requirements ?? '', artwork_requirements: o.artwork_requirements ?? '', cname: o.contact?.name ?? '', cemail: o.contact?.email ?? '', notes: o.notes ?? '', kind: o.kind });
+  const s = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value }));
+  const save = () => onSave({ organization: f.organization || null, gallery: f.gallery || null, city: f.city || null, country: f.country || null, kind: f.kind as OppKind,
+    fee_amount: f.fee === '' ? null : Number(f.fee.replace(',', '.')), fee_currency: f.fee === '' ? null : f.cur, fee_note: f.fee_note || null, application_url: f.application_url || null,
+    requirements: f.requirements || null, artwork_requirements: f.artwork_requirements || null, contact: { name: f.cname || undefined, email: f.cemail || undefined }, notes: f.notes || null });
+  return (
+    <section className="glass panel" style={{ display: 'grid', gap: 10 }} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) save(); }}>
+      <h3>Bilgiler</h3>
+      <div className="grid-2">
+        <Field label="Tür"><select id="df-kind" className="select" value={f.kind} onChange={s('kind')}>{Object.entries(OPP_KIND_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
+        <Field label="Kurum"><input id="df-org" className="input" value={f.organization} onChange={s('organization')} /></Field>
+        <Field label="Galeri"><input id="df-gal" className="input" value={f.gallery} onChange={s('gallery')} /></Field>
+        <Field label="Şehir / ülke"><div className="row" style={{ flexWrap: 'nowrap' }}><input id="df-city" className="input" value={f.city} onChange={s('city')} /><input id="df-country" className="input" value={f.country} onChange={s('country')} /></div></Field>
+        <Field label="Ücret"><div className="row" style={{ flexWrap: 'nowrap' }}><input id="df-fee" className="input" inputMode="decimal" value={f.fee} onChange={s('fee')} /><select id="df-cur" className="select" style={{ width: 90 }} value={f.cur} onChange={s('cur')}>{CUR.map((c) => <option key={c}>{c}</option>)}</select></div></Field>
+        <Field label="Ücret notu"><input id="df-fn" className="input" value={f.fee_note} onChange={s('fee_note')} /></Field>
+      </div>
+      {o.fee_amount != null && <span className="small muted">{fmtMoney(o.fee_amount, o.fee_currency)}</span>}
+      <Field label="Başvuru adresi"><div className="row" style={{ flexWrap: 'nowrap' }}><input id="df-url" className="input" value={f.application_url} onChange={s('application_url')} />{o.application_url && <a className="btn btn-glass icon-btn" href={o.application_url} target="_blank" rel="noopener noreferrer" aria-label="Aç"><ExternalLink size={14} /></a>}</div></Field>
+      <Field label="Katılım şartları"><textarea id="df-req" className="textarea" value={f.requirements} onChange={s('requirements')} /></Field>
+      <Field label="Eser şartları"><textarea id="df-art" className="textarea" value={f.artwork_requirements} onChange={s('artwork_requirements')} /></Field>
+      <div className="grid-2">
+        <Field label="İletişim kişisi"><input id="df-cn" className="input" value={f.cname} onChange={s('cname')} /></Field>
+        <Field label="E-posta"><input id="df-ce" className="input" value={f.cemail} onChange={s('cemail')} /></Field>
+      </div>
+      <Field label="Kişisel notlar"><textarea id="df-notes" className="textarea" value={f.notes} onChange={s('notes')} /></Field>
+      <span className="small muted">Alandan çıkınca kendiliğinden kaydedilir.</span>
+    </section>
+  );
+}

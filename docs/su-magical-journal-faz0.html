@@ -1,0 +1,703 @@
+<title>Su's Magical Journal · Faz 0</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Parisienne&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Düzen: sol sabit içindekiler + sağda "cam sayfalar" halinde akan bölümler; pembe gökyüzü zemini, cam paneller üstünde */
+:root{
+  color-scheme: light;
+  /* Renk sistemi */
+  --rose-600:#C93A73; --rose-500:#E2558C; --rose-300:#F4A3C2; --blush-100:#FCE4EE; --blush-50:#FFF4F8;
+  --peach-300:#FFC4A3; --orange-500:#F28A5C;
+  --teal-500:#1FA9A6; --ocean-300:#8FDCE8; --ocean-100:#DDF5F8;
+  --lilac-300:#CDB9F3; --lilac-100:#EFE8FC;
+  --white:#FFFFFF;
+  --ink-900:#3A2131; --ink-700:#5E3E52; --ink-500:#8C6C80; --line:#F1CFDD;
+  --ok:#2E9E6E; --warn:#D98A1F; --bad:#D2455A;
+  --bg: #FBEFF4;
+  --glass: rgba(255,255,255,.58); --glass-strong: rgba(255,255,255,.78);
+  --glass-edge: rgba(255,255,255,.95);
+  --shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 -1px 0 rgba(201,58,115,.06) inset, 0 18px 40px -18px rgba(150,40,90,.28), 0 2px 6px rgba(150,40,90,.06);
+  /* Tipografi */
+  --f-script:'Parisienne', 'Snell Roundhand', cursive;
+  --f-serif:'Cormorant Garamond', 'Times New Roman', serif;
+  --f-sans:'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono:'JetBrains Mono', ui-monospace, Menlo, monospace;
+  /* Ölçü sistemi (4px taban) */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px;
+  --r-sm:10px; --r-md:16px; --r-lg:24px; --r-pill:999px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:var(--f-sans); color:var(--ink-900); background:var(--bg);
+  background-image:
+    radial-gradient(1200px 600px at 85% -10%, #FFD9C6 0%, transparent 60%),
+    radial-gradient(900px 600px at -10% 20%, #F9C9DC 0%, transparent 60%),
+    radial-gradient(800px 500px at 100% 70%, #CFEFF4 0%, transparent 60%),
+    radial-gradient(700px 500px at 10% 100%, #E7DCFA 0%, transparent 60%);
+  background-attachment: fixed;
+  font-size:15px; line-height:1.6;
+}
+.wrap{max-width:1240px; margin:0 auto; padding-block:var(--s6) var(--s8);
+  padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px));
+  display:grid; grid-template-columns:240px minmax(0,1fr); gap:var(--s6)}
+nav.toc{position:sticky; top:calc(env(safe-area-inset-top,0px) + 24px); align-self:start}
+nav.toc .brand{font-family:var(--f-script); font-size:34px; line-height:1.05; color:var(--rose-600); margin:0 0 var(--s1)}
+nav.toc .sub{font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-500); margin-bottom:var(--s4)}
+nav.toc ol{list-style:none; margin:0; padding:var(--s3); display:grid; gap:2px}
+nav.toc a{display:block; padding:6px 10px; border-radius:var(--r-sm); color:var(--ink-700); text-decoration:none; font-size:13.5px}
+nav.toc a:hover, nav.toc a:focus-visible{background:var(--glass-strong); color:var(--rose-600); outline:none}
+main{min-width:0; display:grid; gap:var(--s5)}
+.glass{background:var(--glass); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border:1px solid var(--glass-edge); border-radius:var(--r-lg); box-shadow:var(--shadow); position:relative}
+.glass::before{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(135deg, rgba(255,255,255,.65) 0%, rgba(255,255,255,0) 38%, rgba(255,255,255,0) 70%, rgba(255,255,255,.25) 100%)}
+section.glass{padding:var(--s6)}
+section > *{position:relative}
+h1,h2,h3{font-family:var(--f-serif); font-weight:600; color:var(--ink-900); text-wrap:balance; margin:0}
+h1{font-size:clamp(36px,5vw,56px); line-height:1.05}
+h2{font-size:32px; line-height:1.15; margin-bottom:var(--s4)}
+h3{font-size:22px; margin:var(--s5) 0 var(--s2)}
+h2 .n{font-family:var(--f-sans); font-size:12px; font-weight:700; letter-spacing:.14em; color:var(--rose-500); display:block; margin-bottom:6px; text-transform:uppercase}
+p{margin:0 0 var(--s3); max-width:72ch}
+ul.clean{margin:0 0 var(--s3); padding-left:1.1em} ul.clean li{margin:4px 0}
+.lead{font-size:17px; color:var(--ink-700)}
+.hero{padding:var(--s7) var(--s6)}
+.hero .script{font-family:var(--f-script); color:var(--rose-500); font-size:clamp(44px,7vw,80px); line-height:1; display:block; margin-bottom:var(--s2)}
+.chips{display:flex; flex-wrap:wrap; gap:var(--s2); margin-top:var(--s4)}
+.chip{display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:var(--r-pill); font-size:12.5px; font-weight:600;
+  background:var(--glass-strong); border:1px solid var(--line); color:var(--ink-700); white-space:nowrap}
+.chip i{width:8px; height:8px; border-radius:50%; display:inline-block}
+.grid2{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--s4)}
+.grid3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--s4)}
+.card{background:var(--glass-strong); border:1px solid var(--glass-edge); border-radius:var(--r-md); padding:var(--s4); min-width:0}
+.card h4{margin:0 0 6px; font-size:14px; font-weight:700; color:var(--rose-600)}
+.card p, .card li{font-size:14px}
+.tbl{overflow-x:auto; border-radius:var(--r-md); border:1px solid var(--line); background:var(--glass-strong)}
+table{border-collapse:collapse; width:100%; font-size:13px; min-width:860px}
+th,td{padding:9px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top}
+th{font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-500); background:rgba(252,228,238,.6); font-weight:700}
+td:first-child{font-weight:700; color:var(--ink-700); white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.v{color:var(--ok); font-weight:700} .i{color:var(--warn); font-weight:700} .q{color:var(--ink-500); font-weight:700} .x{color:var(--bad); font-weight:700}
+.us{background:rgba(221,245,248,.55)}
+pre, code{font-family:var(--f-mono); font-size:12.5px}
+pre.code{background:#2B1A25; color:#FBE3EE; padding:var(--s4); border-radius:var(--r-md); overflow-x:auto; line-height:1.55; margin:0 0 var(--s3)}
+pre.code .c{color:#C79AB2} pre.code .k{color:#8FDCE8} pre.code .t{color:#FFC4A3}
+code.in{background:var(--blush-100); padding:1px 6px; border-radius:6px; color:var(--rose-600)}
+.mer{background:var(--glass-strong); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--s4); overflow-x:auto; margin:0 0 var(--s3)}
+pre.mermaid{margin:0; background:transparent; font-family:var(--f-sans)}
+/* Tasarım sistemi örnekleri */
+.swatches{display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:var(--s3)}
+.sw{border-radius:var(--r-md); overflow:hidden; border:1px solid var(--glass-edge); background:var(--white)}
+.sw .c{height:64px}
+.sw .m{padding:8px 10px; font-size:12px} .sw .m b{display:block; font-size:12.5px} .sw .m span{font-family:var(--f-mono); color:var(--ink-500)}
+.typeset .row{display:grid; grid-template-columns:150px minmax(0,1fr); gap:var(--s4); padding:var(--s3) 0; border-bottom:1px dashed var(--line); align-items:baseline}
+.typeset .row:last-child{border:0}
+.typeset .lab{font-size:12px; color:var(--ink-500); font-family:var(--f-mono)}
+.demo-stage{border-radius:var(--r-lg); padding:var(--s5); background:
+  radial-gradient(400px 220px at 20% 10%, #FFD3DF, transparent 70%),
+  radial-gradient(380px 240px at 90% 90%, #BDEAF1, transparent 70%),
+  linear-gradient(160deg,#FCE1EC,#FDEBDD 55%,#E3F5F8); display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--s4)}
+.btn{font:600 14px/1 var(--f-sans); padding:11px 18px; border-radius:var(--r-pill); border:1px solid transparent; cursor:pointer; transition:transform .15s ease, box-shadow .2s ease, background .2s}
+.btn:focus-visible{outline:3px solid var(--ocean-300); outline-offset:2px}
+.btn-primary{color:#fff; background:linear-gradient(180deg,#EC6C9C,#D9447F); box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 0 8px 18px -8px rgba(201,58,115,.7)}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn-glass{color:var(--rose-600); background:var(--glass-strong); border-color:var(--glass-edge); box-shadow:var(--shadow)}
+.btn-teal{color:#fff; background:linear-gradient(180deg,#36C2BE,#1A9894)}
+.btn-row{display:flex; flex-wrap:wrap; gap:var(--s2); margin-top:var(--s3)}
+.task{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:var(--r-sm); background:rgba(255,255,255,.7); border:1px solid var(--glass-edge); margin-top:8px; font-size:13.5px}
+.task .box{width:18px; height:18px; border-radius:6px; border:1.5px solid var(--rose-300); flex:none; margin-top:2px}
+.task .box.on{background:var(--rose-500); border-color:var(--rose-500)}
+.task small{display:block; color:var(--ink-500); font-size:12px}
+.prog{height:6px; border-radius:6px; background:var(--blush-100); overflow:hidden; margin-top:8px}
+.prog b{display:block; height:100%; background:linear-gradient(90deg,var(--ocean-300),var(--teal-500)); border-radius:inherit}
+.mini-cal{font-size:12px}
+.mini-cal .hd{display:flex; justify-content:space-between; align-items:center; font-family:var(--f-serif); font-weight:700; font-size:18px; margin-bottom:6px}
+.mini-cal .g{display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; font-variant-numeric:tabular-nums}
+.mini-cal .g .w{font-weight:700; color:var(--ink-500); font-size:10.5px}
+.mini-cal .g span{padding:5px 0; border-radius:8px; position:relative}
+.mini-cal .g .past{color:#C4A8B8}
+.mini-cal .g .today{background:var(--rose-500); color:#fff; font-weight:700}
+.mini-cal .g .hol{color:var(--rose-600); font-weight:700; background:var(--blush-100)}
+.mini-cal .g .dot::after{content:""; position:absolute; bottom:1px; left:50%; width:4px; height:4px; margin-left:-2px; border-radius:50%; background:var(--teal-500)}
+.mini-cal .g .dl::after{background:var(--orange-500)}
+.legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:11px; color:var(--ink-500)}
+.legend i{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; vertical-align:middle}
+.spec{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--s3)}
+.spec .card{text-align:center} .spec .card .big{font-family:var(--f-mono); font-size:13px; color:var(--rose-600)}
+.radius-demo{display:flex; gap:var(--s3); flex-wrap:wrap; align-items:end}
+.radius-demo div{width:64px; height:48px; background:var(--glass-strong); border:1px solid var(--rose-300)}
+.flow{counter-reset:f; display:grid; gap:var(--s2); padding:0; margin:0 0 var(--s3); list-style:none}
+.flow li{counter-increment:f; display:grid; grid-template-columns:28px minmax(0,1fr); gap:10px; font-size:14px}
+.flow li::before{content:counter(f); width:24px; height:24px; border-radius:50%; background:var(--blush-100); color:var(--rose-600); font-weight:700; font-size:12px; display:grid; place-items:center}
+.phase{display:grid; grid-template-columns:120px minmax(0,1fr); gap:var(--s4); padding:var(--s4) 0; border-bottom:1px solid var(--line)}
+.phase:last-child{border:0}
+.phase .tag{font-family:var(--f-serif); font-size:26px; font-weight:700; color:var(--rose-500); line-height:1}
+.phase .tag small{display:block; font-family:var(--f-sans); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-500); margin-top:4px}
+.note{border-left:3px solid var(--teal-500); background:rgba(221,245,248,.6); padding:10px 14px; border-radius:0 var(--r-sm) var(--r-sm) 0; font-size:14px; margin:0 0 var(--s3)}
+.note.warn{border-color:var(--orange-500); background:rgba(255,232,218,.65)}
+.layouts{display:grid; grid-template-columns:2.2fr 1.3fr .8fr; gap:var(--s4); align-items:end}
+.dev{border:2px solid #E7BFD0; border-radius:14px; background:rgba(255,255,255,.55); padding:8px; display:grid; gap:5px}
+.dev .b{background:var(--blush-100); border-radius:6px} .dev .b.t{background:var(--ocean-100)} .dev .b.p{background:var(--peach-300); opacity:.6} .dev .b.l{background:var(--lilac-100)}
+.dev-cap{font-size:12.5px; color:var(--ink-500); margin-top:6px; text-align:center}
+@media (max-width:980px){
+  .wrap{grid-template-columns:minmax(0,1fr)}
+  nav.toc{position:static} nav.toc ol{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid3,.demo-stage,.spec{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:620px){
+  section.glass{padding:var(--s5) var(--s4)} .hero{padding:var(--s6) var(--s4)}
+  .grid2,.grid3,.demo-stage,.spec,.layouts{grid-template-columns:minmax(0,1fr)}
+  nav.toc ol{grid-template-columns:minmax(0,1fr)}
+  .typeset .row,.phase{grid-template-columns:minmax(0,1fr); gap:6px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="İçindekiler">
+  <p class="brand">Su's Magical Journal</p>
+  <div class="sub">Faz 0 · Mimari &amp; Tasarım</div>
+  <ol class="glass">
+    <li><a href="#ozet">Özet ve kararlar</a></li>
+    <li><a href="#arastirma">Rakip araştırması</a></li>
+    <li><a href="#farklilasma">Farklılaşma</a></li>
+    <li><a href="#mimari">Sistem mimarisi</a></li>
+    <li><a href="#veri">Veri modeli</a></li>
+    <li><a href="#senkron">Sahiplik ve senkron</a></li>
+    <li><a href="#moduller">Modül haritası</a></li>
+    <li><a href="#akislar">Kullanıcı akışları</a></li>
+    <li><a href="#navigasyon">Navigasyon</a></li>
+    <li><a href="#tasarim">Tasarım sistemi</a></li>
+    <li><a href="#cam">Cam ve bileşenler</a></li>
+    <li><a href="#yerlesim">Ekran yerleşimi</a></li>
+    <li><a href="#entegrasyon">Entegrasyonlar</a></li>
+    <li><a href="#guvenlik">Güvenlik ve yedek</a></li>
+    <li><a href="#yolharitasi">Yol haritası</a></li>
+    <li><a href="#onay">Onayınız gerekenler</a></li>
+  </ol>
+</nav>
+
+<main>
+<!-- HERO -->
+<header class="glass hero" id="ozet">
+  <span class="script">Su's Magical Journal</span>
+  <h1>Kişisel yaşam, sanat kariyeri ve proje yönetimi için tek bir akıllı sistem</h1>
+  <p class="lead" style="margin-top:16px">Bu sayfa Faz 0 teslimidir: rakip araştırması, mimari, veri şeması, akışlar, tasarım sistemi ve yol haritası. Onayınızdan sonra Faz 1 kodlamasına geçilecek.</p>
+  <div class="chips">
+    <span class="chip"><i style="background:var(--rose-500)"></i>React 18 + TypeScript + Vite</span>
+    <span class="chip"><i style="background:var(--teal-500)"></i>Supabase · PostgreSQL · RLS</span>
+    <span class="chip"><i style="background:var(--orange-500)"></i>Edge Functions + pg_cron kuyruğu</span>
+    <span class="chip"><i style="background:var(--lilac-300)"></i>Claude API (sunucu tarafı)</span>
+    <span class="chip"><i style="background:var(--ocean-300)"></i>PWA · Europe/Istanbul · tr-TR</span>
+  </div>
+  <h3>Temel mimari kararlar</h3>
+  <div class="grid2">
+    <div class="card"><h4>Tek kayıt, her yerde görünüm</h4><p>Her bilgi tek tabloda tek satırdır. Takvim, günlük sayfa, proje takvimi ve ana sayfa bu satırları SQL görünümleri üzerinden okur. Kopya yoktur, durum değişince her ekran aynı anda güncellenir.</p></div>
+    <div class="card"><h4>Takvim bir tablo değil, bir görünüm</h4><p><code class="in">v_calendar_entries</code> görünümü görevleri, etkinlikleri, paylaşımları, başvuru tarihlerini ve resmî tatilleri tek akışta birleştirir. Takvim kendi verisini saklamaz.</p></div>
+    <div class="card"><h4>Geçmiş asla üzerine yazılmaz</h4><p>Her değişiklik <code class="in">change_log</code> tablosuna tetikleyiciyle yazılır. Zaman Makinesi ve Proje Hafızası bu değişmez kayıttan beslenir.</p></div>
+    <div class="card"><h4>Yapay zekâ öneri yapar, karar vermez</h4><p>AI'nın ürettiği her şey önce <code class="in">ai_suggestions</code> tablosuna "onay bekliyor" olarak düşer. Tarih, para ve yayın gibi kayıtlar ancak sizin onayınızla oluşur.</p></div>
+  </div>
+</header>
+
+<!-- ARAŞTIRMA -->
+<section class="glass" id="arastirma">
+  <h2><span class="n">Bölüm 22 · Rakip araştırması</span>Altı referans platform</h2>
+  <p>Gesso, Artlogic, Project App, Buffer ve Morph AI resmî sitelerinden 22 Kasım 2026'da okundu. Artwork Archive sitesi otomatik erişimi engelledi (HTTP 403); o sütundaki bilgiler önceki genel bilgiye dayanıyor ve "çıkarım" olarak işaretlendi.</p>
+  <div class="legend" style="margin-bottom:12px"><span><b class="v">✓</b> doğrulandı (resmî sayfa)</span><span><b class="i">~</b> çıkarım / kısmi</span><span><b class="q">?</b> araştırılmalı</span><span><b class="x">✗</b> yok</span></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Ölçüt</th><th>Gesso</th><th>Artwork Archive</th><th>Artlogic (sanatçı)</th><th>Project App</th><th>Buffer</th><th>Morph AI</th><th class="us">Su's Magical Journal</th></tr></thead>
+    <tbody>
+      <tr><td>Ana işlev</td><td><b class="v">✓</b> Sanatçı stüdyo yönetimi</td><td><b class="i">~</b> Eser envanteri ve kariyer kaydı</td><td><b class="v">✓</b> Envanter, satış, web sitesi</td><td><b class="v">✓</b> PARA tabanlı kişisel planlayıcı</td><td><b class="v">✓</b> Sosyal medya zamanlama</td><td><b class="v">✓</b> AI takvim asistanı</td><td class="us">Hepsini tek ilişkisel veritabanında birleştirir</td></tr>
+      <tr><td>Takvim</td><td><b class="v">✓</b> Teslim, sergi ve teslimat tarihleri tek takvimde; senkron <b class="q">?</b></td><td><b class="i">~</b> Son tarih hatırlatıcıları</td><td><b class="q">?</b> Belirtilmemiş</td><td><b class="v">✓</b> Gün/hafta/ay, zaman blokları; Google senkronu "yakında"</td><td><b class="v">✓</b> İçerik takvimi ve kuyruk</td><td><b class="v">✓</b> Google Takvim çift yönlü senkron</td><td class="us">Yıl/ay/hafta/gün/ajanda, gerçek 2027, TR tatilleri</td></tr>
+      <tr><td>Yapay zekâ</td><td><b class="x">✗</b> Yalnız yardım sohbeti</td><td><b class="q">?</b></td><td><b class="q">?</b> Belirtilmemiş</td><td><b class="v">✓</b> MCP ile harici AI ajanları görev oluşturur</td><td><b class="v">✓</b> Metin yazma asistanı</td><td><b class="v">✓</b> Metin, görsel, PDF, ses → etkinlik/görev</td><td class="us">Duyurudan kayıt çıkarma, proje hafızası, çakışma zekâsı</td></tr>
+      <tr><td>Proje yönetimi</td><td><b class="i">~</b> Stüdyo günlüğü, ilham kütüphanesi</td><td><b class="x">✗</b></td><td><b class="x">✗</b></td><td><b class="v">✓</b> Proje, alt proje, bağımlılık, şablon</td><td><b class="x">✗</b></td><td><b class="x">✗</b></td><td class="us">Kanban, liste, zaman çizelgesi, üretim aşamaları</td></tr>
+      <tr><td>Sergi ve fırsatlar</td><td><b class="v">✓</b> Hibe, rezidans, open call; durum, ücret, not; e-posta iletme (Pro)</td><td><b class="i">~</b> Sergi kayıtları ve çağrılar</td><td><b class="i">~</b> Çevrim içi sergiler</td><td><b class="x">✗</b></td><td><b class="x">✗</b></td><td><b class="x">✗</b></td><td class="us">10 durumlu başvuru hattı, otomatik hazırlık planı</td></tr>
+      <tr><td>Sosyal medya</td><td><b class="i">~</b> Yalnız Instagram blok gösterimi</td><td><b class="q">?</b></td><td><b class="q">?</b> Yalnız bülten/e-posta</td><td><b class="x">✗</b></td><td><b class="v">✓</b> 12 platform; IG otomatik yayın için Business/Creator hesap şart</td><td><b class="x">✗</b></td><td class="us">Projeye bağlı içerik, resmî API ile yayın</td></tr>
+      <tr><td>CRM</td><td><b class="v">✓</b> Koleksiyoner listesi, komisyon talepleri</td><td><b class="i">~</b> Kişiler</td><td><b class="v">✓</b> Teklif ve satın alma geçmişi</td><td><b class="x">✗</b></td><td><b class="x">✗</b></td><td><b class="x">✗</b></td><td class="us">İletişim geçmişi, takip görevleri takvimde</td></tr>
+      <tr><td>Veri ilişkileri</td><td><b class="i">~</b> Eser ↔ etkinlik ↔ koleksiyoner</td><td><b class="i">~</b> Eser ↔ sergi ↔ kişi</td><td><b class="v">✓</b> Fatura ↔ kişi ↔ eser</td><td><b class="i">~</b> Proje ↔ görev</td><td><b class="x">✗</b> Yalnız etiket ve kanal grubu</td><td><b class="x">✗</b></td><td class="us">Her varlık ↔ her varlık, tek kimlik</td></tr>
+      <tr><td>Otomasyon</td><td><b class="v">✓</b> Stripe/Shopify satış senkronu</td><td><b class="q">?</b></td><td><b class="v">✓</b> Envanter → web sitesi</td><td><b class="v">✓</b> Tekrarlanan görevler</td><td><b class="v">✓</b> Otomatik yayın</td><td><b class="i">~</b> Proaktif özellikler "yakında"</td><td class="us">Geri planlama, hatırlatıcı zinciri, yayın kuyruğu</td></tr>
+      <tr><td>Kullanıcı deneyimi</td><td><b class="i">~</b> Sade web</td><td><b class="i">~</b> Klasik form ağırlıklı</td><td><b class="i">~</b> Profesyonel, galeri odaklı</td><td><b class="v">✓</b> Çevrim dışı öncelikli, yerel uygulamalar</td><td><b class="v">✓</b> Çok rafine takvim</td><td><b class="v">✓</b> Sohbet tabanlı</td><td class="us">Büyülü cam günlük estetiği, Türkçe</td></tr>
+      <tr><td>Eksikler</td><td>AI yok, sosyal yayın yok, ücretsiz plan 10 eser</td><td>Erişilemedi, doğrulanmadı</td><td>Takvim/AI yok, aylık £95'ten başlıyor</td><td>Sanat kariyeri yok; günlük "yakında"; Türkçe yok</td><td>Proje kavramı yok; Reels müzik/sticker → bildirimle</td><td>Proje, sanat, sosyal yok; mobil "yakında"</td><td class="us">Tek kişilik; ekip özellikleri kapsam dışı</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- FARKLILAŞMA -->
+<section class="glass" id="farklilasma">
+  <h2><span class="n">Bulgular</span>Benimseyeceklerimiz, iyileştireceklerimiz, farkımız</h2>
+  <div class="grid3">
+    <div class="card"><h4>Benimsenecek</h4><ul class="clean">
+      <li>Gesso: fırsat kartında ücret, durum, son tarih yan yana</li>
+      <li>Gesso Pro: duyuru e-postasını sisteme iletme fikri → Faz 3'te "yapıştır / PDF / bağlantı"</li>
+      <li>Project App: Yaşam Alanı → Proje → Görev hiyerarşisi, zaman blokları</li>
+      <li>Buffer: fikir → taslak → kuyruk akışı, pano görünümü, "bildirimle yayınla" yedeği</li>
+      <li>Morph AI: belge/görsel/ses girdisinden yapılandırılmış etkinlik</li>
+      <li>Artlogic: kişi ↔ teklif ↔ eser bağlantısı</li>
+    </ul></div>
+    <div class="card"><h4>İyileştirilecek</h4><ul class="clean">
+      <li>Hiçbiri sosyal içeriği projeye bağlamıyor; burada her paylaşım bir projenin zaman çizelgesinde yaşar</li>
+      <li>Fırsat araçları hazırlık görevi üretmiyor; burada şartlardan geriye planlanmış görev listesi çıkar</li>
+      <li>AI çıkarımında belirsizlik gösterilmiyor; burada her alanın güven puanı ve kaynak alıntısı var</li>
+      <li>Geçmiş kayıt yok; burada değişmez değişiklik günlüğü var</li>
+      <li>Türkçe arayüz ve TR resmî tatilleri hiçbirinde yok</li>
+    </ul></div>
+    <div class="card"><h4>Gerçek farklılaşma</h4><ul class="clean">
+      <li><b>Bağlam grafiği:</b> her kayıt diğerlerine bağlanabilir, tek dosya birden çok projede</li>
+      <li><b>Zaman Makinesi:</b> herhangi bir günün tam fotoğrafı, geçen yılın aynı günü</li>
+      <li><b>Proje Hafızası:</b> "Nerede kaldın?" özeti, karar geçmişiyle</li>
+      <li><b>Çakışma Zekâsı:</b> aynı haftaya düşen son tarihler, aşırı yüklü dönemler, duraklayan projeler</li>
+      <li><b>Duyurudan plana:</b> tek yapıştırmayla fırsat + tarihler + görevler + hatırlatıcılar</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- MİMARİ -->
+<section class="glass" id="mimari">
+  <h2><span class="n">1 · Sistem mimarisi</span>Katmanlar ve sorumluluklar</h2>
+  <div class="mer"><pre class="mermaid">
+flowchart LR
+  subgraph İstemci["İstemci · React PWA"]
+    UI[Ekranlar ve bileşenler]
+    Q[TanStack Query önbelleği]
+    SW[Service Worker · Web Push]
+  end
+  subgraph Supabase
+    AUTH[Auth]
+    DB[(PostgreSQL + RLS)]
+    RT[Realtime]
+    ST[Storage · özel kovalar]
+    EF[Edge Functions]
+    CRON[pg_cron]
+    VAULT[Vault · OAuth tokenları]
+  end
+  subgraph Dış["Dış servisler"]
+    AI[Claude API]
+    IG[Instagram Graph API]
+    X[X API v2]
+    YT[YouTube Data API v3]
+    MAIL[E-posta sağlayıcı]
+  end
+  UI --> Q --> DB
+  RT -- değişiklik yayını --> Q
+  UI --> ST
+  UI --> EF
+  CRON --> EF
+  EF --> DB
+  EF --> VAULT
+  EF --> AI
+  EF --> IG & X & YT
+  EF --> MAIL
+  EF -- push --> SW
+  </pre></div>
+  <div class="grid2">
+    <div class="card"><h4>İstemci yapar</h4><ul class="clean"><li>Arayüz, sürükle-bırak, takvim hesapları (Temporal polyfill / date-fns-tz, Europe/Istanbul)</li><li>Doğrudan veri okuma/yazma: yalnız RLS'in izin verdiği kendi satırları</li><li>İyimser güncelleme + Realtime ile senkron</li></ul></div>
+    <div class="card"><h4>Sunucu yapar</h4><ul class="clean"><li>OAuth token saklama ve yenileme, sosyal medya yayını</li><li>AI çağrıları (anahtar asla istemcide değil)</li><li>Hatırlatıcı tetikleme, yayın kuyruğu, yeniden deneme, yedekleme</li><li>PDF metin çıkarma, bağlantı içeriği çekme</li></ul></div>
+  </div>
+</section>
+
+<!-- VERİ -->
+<section class="glass" id="veri">
+  <h2><span class="n">2 · Veritabanı şeması</span>Varlıklar ve ilişkiler</h2>
+  <p>Tüm tablolarda <code class="in">id uuid</code>, <code class="in">owner_id</code> (RLS), <code class="in">created_at</code>, <code class="in">updated_at</code>, <code class="in">deleted_at</code> (yumuşak silme) bulunur. Tarih-saat <code class="in">timestamptz</code>, gösterim Europe/Istanbul.</p>
+  <div class="mer"><pre class="mermaid">
+erDiagram
+  PROJECT ||--o{ TASK : "içerir"
+  PROJECT ||--o{ SOCIAL_POST : "içerir"
+  PROJECT ||--o{ EVENT : "içerir"
+  PROJECT ||--o{ FINANCE_ENTRY : "bütçe"
+  PROJECT ||--o{ PROJECT_STAGE : "aşamalar"
+  PROJECT ||--o{ MEMORY_ENTRY : "hafıza"
+  PROJECT }o--o{ CONTACT : "project_contacts"
+  PROJECT }o--o{ OPPORTUNITY : "project_opportunities"
+  FILE }o--o{ ENTITY : "file_links (çok-çok)"
+  OPPORTUNITY ||--o| APPLICATION : "başvuru"
+  OPPORTUNITY ||--o{ OPPORTUNITY_DATE : "kritik tarihler"
+  APPLICATION ||--o{ APPLICATION_DOC : "belgeler"
+  APPLICATION_DOC }o--|| FILE : "dosya"
+  CONTACT ||--o{ INTERACTION : "görüşmeler"
+  INTERACTION }o--o| EVENT : "toplantı"
+  INTERACTION ||--o{ TASK : "takip görevi"
+  SOCIAL_POST ||--o{ POST_TARGET : "platform başına"
+  POST_TARGET ||--o{ PUBLISH_JOB : "kuyruk"
+  TASK ||--o{ REMINDER : ""
+  EVENT ||--o{ REMINDER : ""
+  OPPORTUNITY_DATE ||--o{ REMINDER : ""
+  JOURNAL_DAY ||--o{ JOURNAL_BLOCK : "galeri, not, bağlantı"
+  IDEA ||--o| PROJECT : "projeye dönüşür"
+  </pre></div>
+  <h3>Çekirdek tablolar (kısaltılmış)</h3>
+<pre class="code"><span class="c">-- Ortak: her tabloda id, owner_id, created_at, updated_at, deleted_at</span>
+<span class="k">create table</span> projects (id uuid pk, owner_id uuid <span class="k">not null</span>, title text, slug text <span class="k">unique</span>,
+  status project_status, priority priority, start_date date, target_date date,
+  color text, description text, objectives jsonb, progress_override numeric);
+<span class="k">create table</span> tasks (id uuid pk, project_id uuid <span class="k">references</span> projects, contact_id uuid <span class="k">references</span> contacts,
+  opportunity_id uuid <span class="k">references</span> opportunities, title text <span class="k">not null</span>, description text,
+  starts_at timestamptz, ends_at timestamptz, all_day bool, priority priority, category text,
+  status task_status <span class="c">-- todo|doing|done|postponed|cancelled</span>, rrule text, completed_at timestamptz,
+  postponed_from uuid <span class="k">references</span> tasks, source text <span class="c">-- manual|ai|template</span>);
+<span class="k">create table</span> events (id uuid pk, project_id uuid, kind event_kind <span class="c">-- meeting|exhibition|fair|personal|...</span>,
+  title text, starts_at timestamptz, ends_at timestamptz, location text, rrule text);
+<span class="k">create table</span> social_posts (id uuid pk, project_id uuid <span class="k">references</span> projects, content_type text,
+  caption_tr text, caption_en text, hashtags text[], links text[], status post_status,
+  scheduled_at timestamptz);
+<span class="k">create table</span> post_targets (id uuid pk, post_id uuid <span class="k">references</span> social_posts <span class="k">on delete cascade</span>,
+  platform platform <span class="c">-- instagram|x|youtube|website</span>, account_id uuid, status post_status,
+  published_url text, external_id text, error text, <span class="k">unique</span>(post_id, platform));
+<span class="k">create table</span> opportunities (id uuid pk, title text, organization text, gallery text, city text, country text,
+  fee_amount numeric, fee_currency currency, requirements jsonb, required_docs jsonb, artwork_reqs jsonb,
+  application_url text, contact jsonb, notes text, status opp_status, is_confirmed bool,
+  source_text text, source_url text, source_file_id uuid, extraction jsonb <span class="c">-- alan başına güven + alıntı</span>);
+<span class="k">create table</span> opportunity_dates (id uuid pk, opportunity_id uuid, kind opp_date_kind
+  <span class="c">-- app_open|deadline|announcement|delivery|install|opening|closing</span>, date_value timestamptz,
+  certainty certainty <span class="c">-- confirmed|uncertain|conflicting</span>, evidence text);
+<span class="k">create table</span> files (id uuid pk, storage_path text <span class="k">unique</span>, mime text, size bigint, sha256 text <span class="k">unique</span>, title text);
+<span class="k">create table</span> entity_links (id uuid pk, from_type entity_type, from_id uuid, to_type entity_type, to_id uuid,
+  relation text, <span class="k">unique</span>(from_type, from_id, to_type, to_id, relation));
+<span class="k">create table</span> change_log (id bigserial pk, owner_id uuid, table_name text, row_id uuid, op text,
+  before jsonb, after jsonb, at timestamptz <span class="k">default</span> now()); <span class="c">-- yalnız INSERT izni</span>
+<span class="k">create table</span> memory_entries (id uuid pk, project_id uuid, kind memory_kind
+  <span class="c">-- idea|goal|decision|feature_added|feature_removed|problem|solution|reference|state|next_step</span>,
+  body text, supersedes uuid <span class="k">references</span> memory_entries, decided_on date, evidence_ref jsonb);
+<span class="c">-- Ayrıca: contacts, interactions, project_contacts, project_opportunities, applications, application_docs,
+-- reminders, notifications, journal_days, journal_blocks, ideas, finance_entries, fx_rates,
+-- holidays, social_accounts (token Vault'ta), publish_jobs, ai_suggestions, project_stages</span>
+
+<span class="c">-- Takvim: tek görünüm, kopya yok</span>
+<span class="k">create view</span> v_calendar_entries <span class="k">as</span>
+  <span class="k">select</span> 'task' kind, id, project_id, title, starts_at, ends_at, status::text <span class="k">from</span> tasks <span class="k">where</span> deleted_at <span class="k">is null</span>
+  <span class="k">union all select</span> 'event', id, project_id, title, starts_at, ends_at, kind::text <span class="k">from</span> events ...
+  <span class="k">union all select</span> 'post', id, project_id, coalesce(caption_tr, caption_en), scheduled_at, scheduled_at, status::text <span class="k">from</span> social_posts ...
+  <span class="k">union all select</span> 'opportunity_date', d.id, ..., d.date_value, d.date_value, d.kind::text <span class="k">from</span> opportunity_dates d ...
+  <span class="k">union all select</span> 'holiday', id, <span class="k">null</span>, name, day::timestamptz, day::timestamptz, kind <span class="k">from</span> holidays;</pre>
+  <div class="note"><b>Proje ilerlemesi</b> varsayılan olarak hesaplanır: tamamlanan görev ağırlığı / toplam (iptal edilenler hariç) ve tamamlanan aşamalar. Elle değer girerseniz <code class="in">progress_override</code> kullanılır ve bu açıkça gösterilir.</div>
+</section>
+
+<!-- SENKRON -->
+<section class="glass" id="senkron">
+  <h2><span class="n">3 · Veri sahipliği ve senkronizasyon</span>Kim neyin sahibi</h2>
+  <div class="tbl"><table style="min-width:680px">
+    <thead><tr><th>Bilgi</th><th>Sahibi (tek tablo)</th><th>Göründüğü yerler (okuma)</th></tr></thead>
+    <tbody>
+      <tr><td>Instagram paylaşımı</td><td>social_posts + post_targets</td><td>Sosyal Medya Merkezi, proje → Sosyal, proje takvimi, günlük sayfa, yıllık takvim, ana sayfa "Yaklaşan Yayınlar"</td></tr>
+      <tr><td>Başvuru son tarihi</td><td>opportunity_dates</td><td>Fırsatlar, merkez takvim, bağlı proje, ana sayfa, Çakışma Zekâsı</td></tr>
+      <tr><td>Toplantı</td><td>events (kind=meeting) + interactions</td><td>Kişi kartı, proje geçmişi, günlük plan, haftalık görünüm</td></tr>
+      <tr><td>Dosya</td><td>files (sha256 ile tekil)</td><td>file_links ile istenen her proje, başvuru, günlük blok</td></tr>
+      <tr><td>Gelir/gider</td><td>finance_entries</td><td>Finans, proje bütçesi, raporlar, başvuru ücreti</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Senkron kuralları</h3>
+  <ul class="clean">
+    <li>İstemci yazar → PostgreSQL → Realtime yayını → ilgili sorgu anahtarları (ör. <code class="in">['calendar', '2027-04']</code>, <code class="in">['project', id]</code>) geçersiz kılınır. Tüm ekranlar aynı satırı tekrar okur.</li>
+    <li>Yayın durumu yalnız sunucu (Edge Function) tarafından değiştirilir; istemci "Yayınla" isteği gönderir, sonucu Realtime ile görür.</li>
+    <li>Çift kayıt önlemi: dosyada <code class="in">sha256 unique</code>, bağlantılarda bileşik <code class="in">unique</code>, AI çıkarımında kaynak URL + başlık benzerlik kontrolü ("Bu fırsat zaten var mı?").</li>
+    <li>Çevrim dışı (Faz 6): değişiklikler IndexedDB kuyruğunda bekler, bağlantı gelince sırayla gönderilir; <code class="in">updated_at</code> çakışmasında kullanıcıya sorulur.</li>
+  </ul>
+</section>
+
+<!-- MODÜLLER -->
+<section class="glass" id="moduller">
+  <h2><span class="n">4 · Modül etkileşim haritası</span>Her şey birbirine bağlı</h2>
+  <div class="mer"><pre class="mermaid">
+flowchart TB
+  P((Projelerim)):::core
+  T[Görevler]; C[Takvim]; S[Sosyal Medya]; O[Sergiler ve Fırsatlar]
+  K[Kişiler]; F[Finans]; D[Dosyalar]; G[Günlük]; I[Fikirler]
+  ZM[Zaman Makinesi]; PH[Proje Hafızası]; CZ[Çakışma Zekâsı]; A[Akıllı Asistan]
+  P --- T & S & O & K & F & D
+  T & S & O --> C
+  K -- takip görevi --> T
+  O -- hazırlık görevi --> T
+  O -- başvuru ücreti --> F
+  I -- dönüştür --> P
+  C --> G
+  G & T & S & K --> ZM
+  P --> PH
+  C & O & P --> CZ
+  ZM & PH & CZ --> A
+  classDef core fill:#FCE4EE,stroke:#E2558C,stroke-width:2px;
+  </pre></div>
+</section>
+
+<!-- AKIŞLAR -->
+<section class="glass" id="akislar">
+  <h2><span class="n">5 · Ana kullanıcı akışları</span>Dört kritik senaryo</h2>
+  <div class="grid2">
+    <div class="card"><h4>Projeden Instagram paylaşımı</h4><ol class="flow">
+      <li>SU'RÉAL CITY → Sosyal → "Yeni içerik"</li>
+      <li>Görsel yükle (files), TR/EN metin, etiket, tarih 14.04.2027 19:00, platform Instagram</li>
+      <li>Tek <code class="in">social_posts</code> satırı + bir <code class="in">post_targets</code> satırı oluşur</li>
+      <li>Merkez takvim, günlük sayfa, proje takvimi ve ana sayfa görünümden okur</li>
+      <li>Saatinde pg_cron → publish_jobs → Graph API; başarıda <code class="in">published_url</code> yazılır, her ekranda "Yayınlandı"</li>
+    </ol></div>
+    <div class="card"><h4>Duyurudan başvuru planına</h4><ol class="flow">
+      <li>Fırsatlar → "Duyuru ekle" → metin yapıştır / PDF / bağlantı</li>
+      <li>Edge Function metni çıkarır, Claude'a yapılandırılmış şemayla gönderir</li>
+      <li>Önizleme: her alan güven puanı ve kaynak alıntısıyla; belirsizler turuncu işaretli</li>
+      <li>Onayınızla opportunity + tarihler + hatırlatıcılar (30/14/7/3/0 gün) oluşur</li>
+      <li>Şartlardan hazırlık görevleri önerilir, son tarihten geriye planlanır, projeye bağlanır</li>
+    </ol></div>
+    <div class="card"><h4>Projeye aylar sonra dönüş</h4><ol class="flow">
+      <li>Proje açılır, "Nerede kaldın?" paneli</li>
+      <li>Zaman Makinesi son çalışılan günleri ve değişiklikleri getirir</li>
+      <li>Proje Hafızası kararları, son durumu, sonraki adımı özetler (kaynaklı; kayıt yoksa "kayıt yok" der)</li>
+      <li>Çakışma Zekâsı yaklaşan son tarihleri ve eşleşen fırsatları gösterir</li>
+    </ol></div>
+    <div class="card"><h4>Gün içi plan</h4><ol class="flow">
+      <li>Yıllık takvimde 7 Nisan'a tıklama → günlük sayfa</li>
+      <li>08:00–23:00 zaman çizelgesinde görevi sürükle, süresini uzat</li>
+      <li>Bitmemiş görev gün sonunda kaybolmaz: "Ertele / Yeniden planla / İptal" seçenekleri</li>
+      <li>Günlüğe fotoğraf, ses, bağlantı kartı ekle</li>
+    </ol></div>
+  </div>
+</section>
+
+<!-- NAVİGASYON -->
+<section class="glass" id="navigasyon">
+  <h2><span class="n">6 · Navigasyon yapısı</span>Menü ve rotalar</h2>
+  <div class="grid3">
+    <div class="card"><h4>Ana menü</h4><ul class="clean">
+      <li>Ana Sayfa <code class="in">/</code></li><li>Takvim <code class="in">/takvim/:gorunum</code> (yil, ay, hafta, gun, ajanda)</li>
+      <li>Günlük Plan <code class="in">/gun/2027-04-07</code></li><li>Görevler <code class="in">/gorevler</code></li>
+      <li>Projelerim <code class="in">/projeler/:slug/:sekme</code></li><li>Sosyal Medya <code class="in">/sosyal</code></li>
+      <li>Sergiler ve Fırsatlar <code class="in">/firsatlar</code></li></ul></div>
+    <div class="card"><h4>&nbsp;</h4><ul class="clean">
+      <li>Kişiler <code class="in">/kisiler</code></li><li>Fikirler ve Notlar <code class="in">/fikirler</code></li>
+      <li>Günlük (kişisel) <code class="in">/gunluk</code></li><li>Dosyalar <code class="in">/dosyalar</code></li>
+      <li>Finans <code class="in">/finans</code></li><li>Zaman Makinesi <code class="in">/zaman-makinesi</code></li>
+      <li>Raporlar <code class="in">/raporlar</code></li><li>Ayarlar <code class="in">/ayarlar</code></li></ul></div>
+    <div class="card"><h4>Proje sekmeleri</h4><p style="font-size:14px">Genel Bakış · Bilgiler · Hedefler · Görevler · Aşamalar · Takvim · Sosyal Medya · Yayın Planı · Arşiv · Dosyalar · Referanslar · Notlar · Kişiler · Sergi ve Başvurular · Bütçe · Geçmiş · Hafıza</p>
+    <p style="font-size:14px"><b>Her yerden:</b> ⌘K hızlı arama ve "Hızlı ekle" (görev, etkinlik, içerik, fikir).</p></div>
+  </div>
+</section>
+
+<!-- TASARIM SİSTEMİ -->
+<section class="glass" id="tasarim">
+  <h2><span class="n">7–8 · Tasarım sistemi</span>Renk ve tipografi</h2>
+  <p>Pembe öncü renk; turkuaz, şeftali ve beyaz denge ve ferahlık için. Doygun renkler yalnız vurgu ve durumda, yüzeyler her zaman cam ve açık tonlarda.</p>
+  <div class="swatches">
+    <div class="sw"><div class="c" style="background:var(--rose-500)"></div><div class="m"><b>Gül 500 · ana</b><span>#E2558C</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--rose-600)"></div><div class="m"><b>Gül 600 · metin vurgusu</b><span>#C93A73</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--blush-100)"></div><div class="m"><b>Allık 100 · yüzey</b><span>#FCE4EE</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--peach-300)"></div><div class="m"><b>Şeftali 300</b><span>#FFC4A3</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--orange-500)"></div><div class="m"><b>Turuncu 500 · son tarih</b><span>#F28A5C</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--teal-500)"></div><div class="m"><b>Turkuaz 500 · ikincil</b><span>#1FA9A6</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--ocean-300)"></div><div class="m"><b>Okyanus 300</b><span>#8FDCE8</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--lilac-300)"></div><div class="m"><b>Leylak 300 · fikir</b><span>#CDB9F3</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--ink-900)"></div><div class="m"><b>Mürekkep 900 · metin</b><span>#3A2131</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--white); border-bottom:1px solid var(--line)"></div><div class="m"><b>Beyaz</b><span>#FFFFFF</span></div></div>
+  </div>
+  <h3>Kayıt türü renkleri (takvimde)</h3>
+  <div class="chips">
+    <span class="chip"><i style="background:var(--rose-500)"></i>Görev</span>
+    <span class="chip"><i style="background:var(--teal-500)"></i>Etkinlik / toplantı</span>
+    <span class="chip"><i style="background:#9B6FE0"></i>Sergi (onaylı)</span>
+    <span class="chip" style="border-style:dashed"><i style="background:var(--lilac-300)"></i>Potansiyel fırsat (kesik kenar)</span>
+    <span class="chip"><i style="background:var(--orange-500)"></i>Başvuru / proje son tarihi</span>
+    <span class="chip"><i style="background:var(--ocean-300)"></i>Sosyal yayın</span>
+    <span class="chip"><i style="background:var(--peach-300)"></i>Hatırlatıcı</span>
+    <span class="chip"><i style="background:var(--rose-600)"></i>Resmî tatil</span>
+  </div>
+  <p style="margin-top:12px; font-size:13.5px">Metin kontrastı: Mürekkep 900 beyaz/allık üzerinde 12:1'in üstünde; Gül 600 beyaz üzerinde ≈ 4.8:1 (AA). Gül 500 yalnız büyük metin, ikon ve dolgu butonlarda.</p>
+
+  <h3>Tipografi</h3>
+  <div class="typeset">
+    <div class="row"><span class="lab">Parisienne · dekoratif</span><span style="font-family:var(--f-script); font-size:44px; color:var(--rose-500); line-height:1.1">Su's Magical Journal</span></div>
+    <div class="row"><span class="lab">Cormorant Garamond 600 · başlık</span><span style="font-family:var(--f-serif); font-size:32px; font-weight:600">Bugünün Planı · 7 Nisan 2027</span></div>
+    <div class="row"><span class="lab">Manrope 600 · alt başlık</span><span style="font-weight:600; font-size:17px">Öncelikli Görevler</span></div>
+    <div class="row"><span class="lab">Manrope 400 · gövde 15/24</span><span>SU'RÉAL CITY için görsel hazırla, ajansla toplantı yap ve yeni NFT koleksiyonu taslağını bitir. Çğıöşü ÇĞİÖŞÜ</span></div>
+    <div class="row"><span class="lab">JetBrains Mono · veri</span><span style="font-family:var(--f-mono); font-variant-numeric:tabular-nums">₺12.450,00 · 09:24 · %78</span></div>
+  </div>
+  <p style="font-size:13.5px; margin-top:12px">Kural: el yazısı yalnız marka ve ekran başına en fazla bir dekoratif başlıkta. Menü, buton, form ve tablolarda asla. Sayılar Türkçe biçimde: <code class="in">1.234,56</code>, tarih <code class="in">7 Nisan 2027 Çarşamba</code>.</p>
+</section>
+
+<!-- CAM -->
+<section class="glass" id="cam">
+  <h2><span class="n">9 · Cam malzeme ve bileşenler</span>Gerçek cam, okunaklı metin</h2>
+  <div class="spec">
+    <div class="card"><div class="big">blur 18px · saturate 1.4</div><p>Arkadaki rengi taşır, yazıyı bulandırmaz</p></div>
+    <div class="card"><div class="big">dolgu %58 / %78</div><p>Metin taşıyan iç kartlar her zaman %78</p></div>
+    <div class="card"><div class="big">1px beyaz kenar + iç ışık</div><p>Üstte parlak çizgi, altta çok hafif gül gölge</p></div>
+    <div class="card"><div class="big">135° yansıma katmanı</div><p>Sol üst köşede parıltı, sağ alt yumuşak</p></div>
+  </div>
+  <h3>Canlı örnekler</h3>
+  <div class="demo-stage">
+    <div class="glass" style="padding:16px">
+      <div style="display:flex; justify-content:space-between; align-items:baseline"><b style="font-family:var(--f-serif); font-size:20px">Bugünün Planı</b><span class="chip">3</span></div>
+      <div class="task"><span class="box"></span><div>SU'RÉAL CITY için görsel hazırla<small>10:00–12:00 · Yüksek</small></div></div>
+      <div class="task"><span class="box"></span><div>Ajans ile toplantı<small>14:00 · Toplantı</small></div></div>
+      <div class="task"><span class="box on"></span><div style="text-decoration:line-through; color:var(--ink-500)">Portfolyo görsellerini dışa aktar<small>Tamamlandı</small></div></div>
+    </div>
+    <div class="glass" style="padding:16px">
+      <b style="font-family:var(--f-serif); font-size:20px">Projelerim</b>
+      <div style="margin-top:10px; font-size:13.5px"><b>SU'RÉAL CITY</b> <span style="float:right; font-family:var(--f-mono)">%78</span><div class="prog"><b style="width:78%"></b></div></div>
+      <div style="margin-top:12px; font-size:13.5px"><b>SAVE ME</b> <span style="float:right; font-family:var(--f-mono)">%45</span><div class="prog"><b style="width:45%; background:linear-gradient(90deg,var(--peach-300),var(--orange-500))"></b></div></div>
+      <div style="margin-top:12px; font-size:13.5px"><b>Ghost Sculpture</b> <span style="float:right; font-family:var(--f-mono)">%12</span><div class="prog"><b style="width:12%; background:linear-gradient(90deg,var(--lilac-300),#9B6FE0)"></b></div></div>
+      <div class="btn-row"><button class="btn btn-primary" type="button">Yeni proje</button><button class="btn btn-glass" type="button">Tümünü gör</button></div>
+    </div>
+    <div class="glass mini-cal" style="padding:16px" id="miniCal" aria-label="Nisan 2027 örnek takvim"></div>
+  </div>
+  <h3>Bileşen kuralları</h3>
+  <div class="grid2">
+    <div class="card"><h4>Ölçü ve köşe</h4>
+      <p>Boşluk ölçeği 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 px. Kart içi 16, panel içi 24–32, paneller arası 16–24.</p>
+      <div class="radius-demo"><div style="border-radius:10px"></div><div style="border-radius:16px"></div><div style="border-radius:24px"></div><div style="border-radius:999px; width:96px"></div></div>
+      <p style="font-size:12.5px; margin-top:6px; color:var(--ink-500)">10 giriş/etiket · 16 kart · 24 panel · hap buton/çip</p></div>
+    <div class="card"><h4>Etkileşim durumları</h4><ul class="clean">
+      <li>Üzerine gelme: 1px yükselme + gölge derinleşir (150 ms)</li>
+      <li>Odak: 3px okyanus mavisi halka, her öğede görünür</li>
+      <li>Basılı: %98 ölçek; devre dışı: %45 opaklık, imleç yok</li>
+      <li>Yükleniyor: cam iskelet + yumuşak parıltı (azaltılmış harekette sabit)</li>
+      <li>Hata: kırmızı kenar + ne olduğunu ve nasıl düzeltileceğini söyleyen Türkçe metin</li>
+    </ul></div>
+    <div class="card"><h4>İkonlar ve süsler</h4><ul class="clean">
+      <li>Lucide ikonları, 1.75 çizgi, 18/20 px, köşeleri yuvarlatılmış</li>
+      <li>Yıldız ve parıltı ekran başına en fazla 2–3, yalnız boş alanda</li>
+      <li>Kitap, kurdele, ayraç: kenar çubuğu, boş durum ve Zaman Makinesi'nde</li>
+    </ul></div>
+    <div class="card"><h4>Grafikler</h4><ul class="clean">
+      <li>Recharts; ince ızgara, alan dolgusu %15, uç nokta vurgulu</li>
+      <li>Seri renkleri sabit sırayla: gül, turkuaz, şeftali, leylak, okyanus</li>
+      <li>Para birimi ve yüzde tr-TR biçiminde, eksen etiketleri gerçek değerler</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- YERLEŞİM -->
+<section class="glass" id="yerlesim">
+  <h2><span class="n">10 · Masaüstü, tablet, mobil</span>Her cihaz için ayrı düzen</h2>
+  <div class="layouts">
+    <div><div class="dev" style="grid-template-columns:.7fr 2.4fr 1.4fr 1.4fr; grid-template-rows:14px 60px 60px 30px; aspect-ratio:16/9">
+      <div class="b l" style="grid-row:1/5"></div><div class="b" style="grid-column:2/5"></div>
+      <div class="b" style="grid-row:2/4"></div><div class="b t"></div><div class="b"></div><div class="b p"></div><div class="b t"></div>
+      <div class="b l"></div><div class="b"></div><div class="b t"></div></div>
+      <div class="dev-cap">Masaüstü ≥1280px · kenar menü + 12 ay tek ekranda + plan + projeler</div></div>
+    <div><div class="dev" style="grid-template-columns:1fr 1fr; grid-template-rows:12px 70px 40px 40px; aspect-ratio:4/3">
+      <div class="b l" style="grid-column:1/3"></div><div class="b" style="grid-column:1/3"></div><div class="b t"></div><div class="b"></div><div class="b p"></div><div class="b t"></div></div>
+      <div class="dev-cap">Tablet 768–1279 · daraltılmış ikon menü, takvim 4×3</div></div>
+    <div><div class="dev" style="grid-template-rows:10px 46px 30px 30px 30px 14px; aspect-ratio:9/19">
+      <div class="b l"></div><div class="b"></div><div class="b t"></div><div class="b"></div><div class="b p"></div><div class="b l"></div></div>
+      <div class="dev-cap">Mobil · alt sekme çubuğu</div></div>
+  </div>
+  <div class="grid3" style="margin-top:16px">
+    <div class="card"><h4>Masaüstü</h4><p>12 ay 4×3 ızgarada, her gün tıklanabilir. Sağda Bugünün Planı ve Projelerim; altta Zaman Makinesi ve Asistan şeritleri.</p></div>
+    <div class="card"><h4>Tablet</h4><p>Menü ikonlara daralır. Yıllık takvim 3×4, paneller iki sütun. Haftalık görünüm yatayda kaydırmasız 7 gün.</p></div>
+    <div class="card"><h4>Mobil</h4><p>Alt sekmeler: Bugün · Takvim · Ekle (+) · Projeler · Daha fazla. Takvim ay şeridi + dikey ajanda. Günlük planda uzun basıp sürükle, 44px dokunma alanı, iPhone güvenli alanları.</p></div>
+  </div>
+</section>
+
+<!-- ENTEGRASYON -->
+<section class="glass" id="entegrasyon">
+  <h2><span class="n">11 · Entegrasyon ve API stratejisi</span>Gerçekte çalışan, dürüstçe sınırlanan</h2>
+  <div class="note warn">Hiçbir entegrasyon, bağlantı ve izin gerçekten doğrulanmadan "çalışıyor" olarak gösterilmeyecek. Her hesap kartında durum: Bağlı · İzin eksik · Hesap türü uygun değil · Elle yayın.</div>
+  <div class="tbl"><table style="min-width:760px">
+    <thead><tr><th>Servis</th><th>Yöntem</th><th>Ön koşul ve bilinen sınırlar</th></tr></thead>
+    <tbody>
+      <tr><td>Instagram</td><td>Instagram Graph API · içerik yayınlama (konteyner → publish)</td><td>Business veya Creator hesabı, Meta uygulaması, gerekli izinler için Meta incelemesi. Kişisel hesapta yalnız elle yayın. Görsel herkese açık URL'den alınır (Storage'dan kısa ömürlü imzalı URL). Günlük yayın kotası API'ye göre sınırlı.</td></tr>
+      <tr><td>X</td><td>X API v2 · OAuth 2.0 PKCE · gönderi oluşturma</td><td>Geliştirici hesabı gerekli; yazma erişimi ücretli katmana/kullanım ücretine bağlı olabilir. Güncel fiyat ve kota Faz 4 başında doğrulanacak.</td></tr>
+      <tr><td>YouTube</td><td>YouTube Data API v3 · videos.insert (devam ettirilebilir yükleme), publishAt ile zamanlama</td><td>Günlük 10.000 birim kota, yükleme pahalı. Denetlenmemiş API projelerinden yüklenen videolar Google denetimi tamamlanana kadar gizli kalır.</td></tr>
+      <tr><td>Web sitesi</td><td>Sitenizin altyapısına göre (WordPress REST, Webhook veya elle)</td><td>Hangi altyapıyı kullandığınızı öğrenmem gerekiyor.</td></tr>
+      <tr><td>Yapay zekâ</td><td>Claude API (Sonnet 5.5), Edge Function üzerinden, yapılandırılmış çıktı</td><td>API anahtarınız Supabase sırlarında saklanır. Her çıkarım alanı: değer, güven, kaynak alıntısı. Kullanım maliyeti sizin hesabınıza yansır.</td></tr>
+      <tr><td>Bildirimler</td><td>Web Push (VAPID), e-posta (Resend), uygulama içi</td><td>iPhone'da push için PWA'nın Ana Ekrana eklenmesi gerekir (iOS 16.4+). Yerel mobil uygulama kapsam dışı.</td></tr>
+      <tr><td>Hava durumu</td><td>Open-Meteo (anahtarsız)</td><td>İsteğe bağlı, varsayılan İstanbul.</td></tr>
+      <tr><td>Resmî tatiller</td><td>holidays tablosu, yıllık tohum verisi</td><td>Sabit tarihli tatiller hesaplanır. Dinî bayramlar Diyanet takviminden girilir ve kaynağıyla saklanır.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Yayın kuyruğu</h3>
+  <p>pg_cron her dakika <code class="in">publish_jobs</code> tablosundan zamanı gelenleri <code class="in">for update skip locked</code> ile alır. Hata durumunda 1, 5, 30 dakika ve 2 saat aralıkla en fazla 4 deneme; sonra "Başarısız" durumu, hata metni ve "Tekrar dene / Elle yayınla" seçeneği. Yayın asla sizin açık "Zamanla" onayınız olmadan kuyruğa girmez.</p>
+  <h3>2027 resmî tatilleri (Faz 1 tohum verisi)</h3>
+  <div class="tbl"><table style="min-width:600px">
+    <thead><tr><th>Tarih</th><th>Gün</th><th>Tatil</th><th>Durum</th></tr></thead>
+    <tbody>
+      <tr><td>1 Ocak</td><td>Cuma</td><td>Yılbaşı</td><td class="v">Kanunla sabit</td></tr>
+      <tr><td>8 Mart (yarım) · 9–11 Mart</td><td>Pzt · Salı–Perşembe</td><td>Ramazan Bayramı arifesi ve bayram</td><td class="i">Diyanet'ten doğrulanacak</td></tr>
+      <tr><td>23 Nisan</td><td>Cuma</td><td>Ulusal Egemenlik ve Çocuk Bayramı</td><td class="v">Kanunla sabit</td></tr>
+      <tr><td>1 Mayıs</td><td>Cumartesi</td><td>Emek ve Dayanışma Günü</td><td class="v">Kanunla sabit</td></tr>
+      <tr><td>15 Mayıs (yarım) · 16–19 Mayıs</td><td>Cmt · Pazar–Çarşamba</td><td>Kurban Bayramı arifesi ve bayram</td><td class="i">Diyanet'ten doğrulanacak</td></tr>
+      <tr><td>19 Mayıs</td><td>Çarşamba</td><td>Atatürk'ü Anma, Gençlik ve Spor Bayramı (Kurban Bayramı ile çakışıyor)</td><td class="v">Kanunla sabit</td></tr>
+      <tr><td>15 Temmuz</td><td>Perşembe</td><td>Demokrasi ve Millî Birlik Günü</td><td class="v">Kanunla sabit</td></tr>
+      <tr><td>30 Ağustos</td><td>Pazartesi</td><td>Zafer Bayramı</td><td class="v">Kanunla sabit</td></tr>
+      <tr><td>28 Ekim (yarım) · 29 Ekim</td><td>Perşembe · Cuma</td><td>Cumhuriyet Bayramı</td><td class="v">Kanunla sabit</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- GÜVENLİK -->
+<section class="glass" id="guvenlik">
+  <h2><span class="n">12 · Güvenlik ve yedekleme</span>Verileriniz yalnız sizin</h2>
+  <div class="grid2">
+    <div class="card"><h4>Erişim</h4><ul class="clean">
+      <li>Supabase Auth: e-posta + şifre veya sihirli bağlantı, isteğe bağlı TOTP 2FA</li>
+      <li>Her tabloda RLS: <code class="in">owner_id = auth.uid()</code></li>
+      <li><code class="in">change_log</code>: yalnız ekleme, güncelleme/silme yasak</li>
+      <li>Storage kovaları özel; dosyalar kısa ömürlü imzalı URL ile açılır</li>
+      <li>Yüklemede MIME ve boyut kontrolü (görsel 25 MB, video 1 GB, ses 100 MB)</li>
+    </ul></div>
+    <div class="card"><h4>Sırlar</h4><ul class="clean">
+      <li>OAuth erişim/yenileme tokenları Supabase Vault'ta şifreli</li>
+      <li>AI ve e-posta anahtarları Edge Function sırlarında</li>
+      <li>İstemci paketinde yalnız herkese açık "anon" anahtar</li>
+    </ul></div>
+    <div class="card"><h4>Yedek ve geri yükleme</h4><ul class="clean">
+      <li>Supabase günlük yedekleri (Pro planda zamanda geri dönüş)</li>
+      <li>Haftalık otomatik JSON dışa aktarım, özel kovaya</li>
+      <li>Ayarlar → "Tüm verilerimi indir" (JSON + dosya listesi)</li>
+      <li>Geri yükleme: önce önizleme, sonra onayla birleştir; kimlikler korunur</li>
+    </ul></div>
+    <div class="card"><h4>Onay gerektiren işlemler</h4><ul class="clean">
+      <li>Silme (önce çöp kutusu, 30 gün), toplu değişiklik</li>
+      <li>Yayın zamanlama ve "Şimdi yayınla"</li>
+      <li>AI önerilerinin uygulanması, tarih ve finans değişiklikleri</li>
+      <li>Dış hesap bağlama ve bağlantı kesme</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- YOL HARİTASI -->
+<section class="glass" id="yolharitasi">
+  <h2><span class="n">13 · Geliştirme yol haritası</span>Her fazın sonunda test edilmiş, çalışan ürün</h2>
+  <div class="phase"><div class="tag">Faz 1<small>Çekirdek</small></div><div><p><b>Teslim:</b> Supabase projesi ve göçler, Auth, tasarım sistemi bileşenleri, Türkçe arayüz, gerçek 2027 takvimi (yıl/ay/hafta/gün/ajanda), resmî tatiller, Ana Sayfa, görevler (tekrar, erteleme), günlük plan 08:00–23:00 sürükle-bırak, günlük sayfa (foto, ses, bağlantı kartı, galeri), dosya yönetimi.</p><p><b>Kabul testi:</b> 2027'nin her ayının gün sayısı ve hafta başlangıcı doğru; görev sürüklenince takvimde, günlük sayfada ve ana sayfada aynı anda değişir; sayfa yenilenince veri kalır.</p></div></div>
+  <div class="phase"><div class="tag">Faz 2<small>Projeler</small></div><div><p>Proje çalışma alanı (17 sekme), Kanban/liste/zaman çizelgesi, proje takvimi, projeye bağlı sosyal içerik (elle yayın), CRM, fikirler → projeye dönüştürme, Proje Hafızası kayıtları.</p><p><b>Kabul testi:</b> projeden oluşturulan içerik merkezde tek kayıt olarak görünür; bir dosya iki projede, tek yükleme.</p></div></div>
+  <div class="phase"><div class="tag">Faz 3<small>Fırsatlar</small></div><div><p>Sergiler ve Fırsatlar merkezi, 10 durumlu hat, duyuru/PDF/bağlantı çıkarımı, belirsizlik işaretleri, otomatik takvim tarihleri, hazırlık görevleri, özelleştirilebilir hatırlatıcılar.</p><p><b>Kabul testi:</b> gerçek bir open call metni yapıştırılır; uydurma tarih oluşmaz, eksikler "bilinmiyor" olarak işaretlenir.</p></div></div>
+  <div class="phase"><div class="tag">Faz 4<small>Entegrasyon</small></div><div><p>Instagram, X, YouTube OAuth bağlantıları, yayın kuyruğu, yeniden deneme, gerçek URL'ler, Web Push ve e-posta bildirimleri, zamanlanmış işler.</p><p><b>Kabul testi:</b> her platformda gerçek bir test paylaşımı (onayınızla) ve URL'nin geri yazılması.</p></div></div>
+  <div class="phase"><div class="tag">Faz 5<small>Zekâ</small></div><div><p>Zaman Makinesi, Proje Hafızası özetleri, Fırsat ve Çakışma Zekâsı, veriye dayalı asistan, haftalık/aylık raporlar, finans grafikleri (TRY/USD/EUR).</p></div></div>
+  <div class="phase"><div class="tag">Faz 6<small>Cila</small></div><div><p>PWA kurulum, çevrim dışı kuyruk, mobil etkileşimler, performans, güvenlik denetimi, yedek/geri yükleme testi.</p></div></div>
+</section>
+
+<!-- ONAY -->
+<section class="glass" id="onay">
+  <h2><span class="n">Sonraki adım</span>Faz 1'e başlamadan onayınız gerekenler</h2>
+  <ul class="clean">
+    <li><b>Teknoloji:</b> React + TypeScript + Vite + Supabase önerisi uygun mu?</li>
+    <li><b>Supabase hesabı:</b> Bir Supabase projesi açmanız (ücretsiz plan Faz 1 için yeterli) ve proje URL'si ile anon anahtarını vermeniz gerekecek. Alternatif: Faz 1'i önce yerel Supabase (Docker) ile kurmak.</li>
+    <li><b>Görsel yön:</b> Renk paleti, tipografi ve cam yoğunluğu doğru mu? Daha az ya da daha çok pembe?</li>
+    <li><b>Web siteniz:</b> Hangi altyapı (WordPress, Wix, Squarespace, özel)?</li>
+    <li><b>Instagram:</b> Hesabınız Business/Creator ve bir Facebook sayfasına bağlı mı?</li>
+    <li><b>Proje klasörü:</b> Kod nerede dursun (ör. Masaüstü'nde yeni bir klasör)?</li>
+  </ul>
+</section>
+</main>
+</div>
+
+<script>
+(function(){
+  // Nisan 2027 — gerçek tarih hesabı, Pazartesi başlangıçlı
+  var y=2027, m=3, today=7;
+  var el=document.getElementById('miniCal'); if(!el) return;
+  var names=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  var first=new Date(Date.UTC(y,m,1)).getUTCDay(); var offset=(first+6)%7;
+  var days=new Date(Date.UTC(y,m+1,0)).getUTCDate();
+  var hol={23:1}, ev={9:1,14:1,20:1}, dl={16:1,30:1};
+  var h='<div class="hd"><span>'+names[m]+' '+y+'</span><span style="font-size:12px;font-family:var(--f-sans);color:var(--ink-500)">'+days+' gün</span></div><div class="g">';
+  ['P','S','Ç','P','C','C','P'].forEach(function(d){h+='<span class="w">'+d+'</span>'});
+  for(var i=0;i<offset;i++) h+='<span></span>';
+  for(var d=1; d<=days; d++){
+    var c=[]; if(d<today) c.push('past'); if(d===today) c.push('today'); if(hol[d]) c.push('hol');
+    if(ev[d]) c.push('dot'); if(dl[d]) c.push('dot','dl');
+    h+='<span class="'+c.join(' ')+'">'+d+'</span>';
+  }
+  h+='</div><div class="legend"><span><i style="background:var(--rose-500)"></i>bugün</span><span><i style="background:var(--blush-100);outline:1px solid var(--rose-300)"></i>tatil</span><span><i style="background:var(--teal-500)"></i>etkinlik</span><span><i style="background:var(--orange-500)"></i>son tarih</span></div>';
+  el.innerHTML=h;
+})();
+</script>

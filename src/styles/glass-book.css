@@ -1,0 +1,121 @@
+/* ══ Su's Magical Journal — cam sihirli defter teması ══
+   Kural: animasyonlar yalnız transform/opacity (GPU). Süs katmanı sabit, tıklanmaz ve içeriğin kenar boşluklarında durur.
+   Sade mod ve "hareketi azalt" her şeyi durdurur. */
+
+/* gün batımı gökyüzü */
+body {
+  background:
+    radial-gradient(900px 520px at 85% -10%, rgba(255,214,170,.75), transparent 65%),
+    radial-gradient(800px 600px at 5% 105%, rgba(255,168,222,.7), transparent 60%),
+    linear-gradient(175deg, #FFD6EC 0%, #F7C4F0 36%, #D3B8FF 72%, #FFD0C4 100%) fixed;
+}
+
+/* ─ süs katmanı ─ */
+.bk-decor { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; contain: layout paint; }
+.bk-frame { position: absolute; inset: 0; border-radius: 0;
+  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.95), inset 0 0 0 7px rgba(255,255,255,.22), inset 0 0 34px 4px rgba(255,110,190,.38), inset 6px 0 18px -6px rgba(0,229,255,.5), inset -6px 0 18px -6px rgba(255,90,170,.55); }
+.bk-edge { position: absolute; right: 0; top: 12%; bottom: 12%; width: 6px; opacity: .85;
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,.95) 0 1px, rgba(255,190,225,.7) 1px 3px); border-radius: 3px 0 0 3px; box-shadow: -2px 0 6px rgba(255,90,170,.35); }
+.bk-spark { position: absolute; color: #fff; text-shadow: 0 0 8px #FF7BC0, 0 0 16px rgba(255,201,77,.8); font-style: normal; opacity: 0; animation: bk-tw 3.4s ease-in-out infinite; will-change: transform, opacity; }
+@keyframes bk-tw { 0%, 100% { opacity: 0; transform: scale(.4) rotate(0deg); } 50% { opacity: .95; transform: scale(1) rotate(30deg); } }
+.bk-petal { position: absolute; top: -6%; border-radius: 80% 0 80% 0; background: linear-gradient(135deg, #FFC4E2, #FF6FB5); opacity: .75; animation: bk-fall linear infinite; will-change: transform; }
+@keyframes bk-fall { 0% { transform: translate3d(0, -6vh, 0) rotate(var(--r)); } 100% { transform: translate3d(var(--w), 108vh, 0) rotate(calc(var(--r) + 300deg)); } }
+
+.bk-bow { position: absolute; left: 6px; top: 2px; width: 50px; transform-origin: 50% 60%; animation: bk-sway 4.5s ease-in-out infinite alternate; filter: drop-shadow(0 4px 6px rgba(200,30,110,.35)); }
+@keyframes bk-sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg) scale(1.04); } }
+.bk-pendant, .bk-lock { display: none; }
+.bk-bfly { position: absolute; left: 0; top: 0; width: 38px; opacity: 0; animation: bk-fly 34s linear infinite; filter: drop-shadow(0 3px 5px rgba(160,60,160,.35)); }
+.bk-bfly .w { transform-box: fill-box; animation: bk-flap .45s ease-in-out infinite alternate; }
+.bk-bfly .l { transform-origin: 100% 50%; } .bk-bfly .r { transform-origin: 0 50%; }
+@keyframes bk-flap { from { transform: scaleX(1); } to { transform: scaleX(.35); } }
+@keyframes bk-fly {
+  0% { opacity: 0; transform: translate3d(-10vw, 70vh, 0) rotate(8deg); }
+  6% { opacity: .95; }
+  30% { transform: translate3d(35vw, 38vh, 0) rotate(-10deg); }
+  50% { transform: translate3d(60vw, 58vh, 0) rotate(12deg); }
+  70% { opacity: .95; transform: translate3d(95vw, 22vh, 0) rotate(-8deg); }
+  76%, 100% { opacity: 0; transform: translate3d(110vw, 18vh, 0); }
+}
+
+/* ─ sayfa gövdesi (mobil: üst şerit kurdele için) ─ */
+.main { padding-top: 44px; }
+@media (min-width: 1000px) { .main { padding-top: var(--s5); } }
+
+/* ─ cam kartlar: kenar ışıltısı ─ */
+.glass, .card, .panel, .stat, .page-card, .opp-card, .kcard {
+  background: linear-gradient(150deg, rgba(255,255,255,.62) 0%, rgba(255,235,247,.34) 48%, rgba(238,225,255,.42) 100%);
+  border: 1px solid rgba(255,255,255,.95);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.95), inset 3px 0 12px -5px rgba(0,229,255,.55), inset -3px 0 12px -5px rgba(255,80,170,.55), 0 22px 44px -26px rgba(190,40,140,.55);
+}
+.panel-head h2, .panel > h2 { font-family: var(--f-script); font-weight: 400; font-size: 28px; color: #B0246F; text-shadow: 0 1px 0 #fff; }
+.panel-head h2::after { content: ""; display: block; height: 2px; width: 64px; margin-top: 2px; border-radius: 2px; background: linear-gradient(90deg, #FF3D8E, #FFC94D, transparent); }
+
+/* ─ kahraman: eser kemeri ─ */
+.hero { grid-template-columns: minmax(0, 1.15fr) minmax(220px, .85fr); grid-template-areas: "main art" "weather art"; align-items: start; }
+.hero-main { grid-area: main; } .hero-weather { grid-area: weather; } .hero-art { grid-area: art; }
+.hero-art { margin: 0; display: grid; gap: 10px; justify-items: center; }
+.ha-arch { position: relative; display: block; width: min(100%, 300px); aspect-ratio: 3 / 4; border-radius: 999px 999px 26px 26px; overflow: hidden; border: 2px solid #fff;
+  background: linear-gradient(160deg, #FFD6EC, #D9C2FF); animation: bk-float 6s ease-in-out infinite alternate;
+  box-shadow: 0 0 0 6px rgba(255,255,255,.35), 0 0 36px 6px rgba(255,110,190,.55), 0 28px 50px -22px rgba(150,30,120,.6); }
+@keyframes bk-float { from { transform: translateY(0) rotate(-.6deg); } to { transform: translateY(-8px) rotate(.6deg); } }
+.ha-img, .ha-ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ha-ph { filter: blur(6px); transform: scale(1.06); }
+.ha-img { z-index: 1; }
+.ha-glow { position: absolute; inset: 0; z-index: 2; background: linear-gradient(115deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.5) 50%, rgba(255,255,255,0) 70%); transform: translateX(-120%); animation: su-sweep 5.5s ease-in-out infinite; }
+.ha-s { position: absolute; z-index: 3; font-style: normal; color: #fff; text-shadow: 0 0 10px #FF4FA8; animation: bk-tw 3s ease-in-out infinite; }
+.ha-s.a { left: 14%; top: 22%; font-size: 18px; } .ha-s.b { right: 16%; top: 40%; font-size: 14px; animation-delay: 1s; } .ha-s.c { left: 28%; bottom: 14%; font-size: 12px; animation-delay: 2s; }
+.ha-quote { display: grid; gap: 2px; justify-items: center; text-align: center; max-width: 300px; font-family: var(--f-serif); font-style: italic; font-size: 17px; color: #7A1456; }
+.ha-quote b { font-size: 26px; color: #E2278B; }
+
+/* ─ masaüstü sol sayfa: madalyon ve kolye ─ */
+.brand { display: grid; place-items: center; width: 132px; height: 132px; margin: 8px auto 4px; text-align: center; font-size: 27px; line-height: 1.05; isolation: isolate; }
+.brand::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50%; border: 2px solid #fff;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.95), rgba(255,200,230,.55) 60%, rgba(226,120,200,.45));
+  box-shadow: 0 0 0 5px rgba(255,255,255,.35), 0 0 24px rgba(255,90,170,.5), inset 0 0 20px rgba(255,255,255,.8); animation: bk-pulse 4s ease-in-out infinite alternate; }
+@keyframes bk-pulse { from { transform: scale(1); } to { transform: scale(1.04); } }
+.nav a.active { background: linear-gradient(135deg, #FF9BD0, #FF5CAB); color: #fff; box-shadow: 0 10px 22px -10px rgba(226,39,139,.9), inset 0 1px 0 rgba(255,255,255,.7); }
+.nav a { transition: transform .3s var(--ease), background .3s; } .nav a:hover { transform: translateX(4px); }
+
+@media (min-width: 1000px) {
+  .bk-frame { border-radius: 22px; inset: 6px; }
+  .bk-bow { width: 74px; left: 82px; top: 150px; }
+  .bk-pendant { display: block; position: absolute; left: 14px; top: 0; width: 38px; transform-origin: 50% 0; animation: bk-swing 5s ease-in-out infinite alternate; filter: drop-shadow(0 6px 8px rgba(150,80,200,.35)); }
+  .bk-lock { display: block; position: absolute; right: 2px; top: 42%; width: 30px; filter: drop-shadow(0 4px 6px rgba(120,70,10,.4)); }
+  .bk-bfly { width: 54px; }
+  .main { padding-right: calc(var(--s5) + 24px); }
+}
+@keyframes bk-swing { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+
+/* ─ mobil ─ */
+@media (max-width: 760px) {
+  .hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "art" "weather"; }
+  .ha-arch { width: min(78%, 260px); }
+  .hero-main .script { font-size: 38px !important; }
+  .tabbar { left: 10px; right: 10px; bottom: calc(10px + var(--safe-b)); padding: 6px 6px; border-radius: 26px; border: 1px solid #fff; background: rgba(255,240,250,.72);
+    backdrop-filter: blur(16px) saturate(1.6); -webkit-backdrop-filter: blur(16px) saturate(1.6);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.95), inset 3px 0 10px -4px rgba(0,229,255,.5), inset -3px 0 10px -4px rgba(255,80,170,.5), 0 16px 34px -14px rgba(190,40,140,.6); }
+  .main { padding-bottom: calc(104px + var(--safe-b)); }
+}
+/* aktif sekme: sarkan yer imi */
+.tabbar a.active::after { top: -6px; width: 16px; height: 22px; margin-left: -8px; border-radius: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%); background: linear-gradient(180deg, #FF3D8E, #FFC94D); animation: bk-drop .5s var(--ease); }
+@keyframes bk-drop { from { transform: translateY(-14px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ─ açılış kapağı ─ */
+.bi { position: fixed; inset: 0; z-index: 500; perspective: 1600px; pointer-events: none; overflow: hidden; }
+.bi-veil { position: absolute; inset: 0; background: linear-gradient(175deg, #FFD6EC, #D3B8FF); }
+.bi-cover { position: absolute; inset: 0; transform-origin: left center; backface-visibility: hidden; display: grid; place-items: center;
+  background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.95), rgba(255,190,226,.9) 45%, rgba(224,150,230,.95));
+  box-shadow: inset 0 0 0 10px rgba(255,255,255,.55), inset 0 0 60px rgba(255,90,170,.55); }
+.bi-title { font-family: var(--f-script); font-size: clamp(46px, 14vw, 92px); line-height: 1; text-align: center; color: #B0246F; text-shadow: 0 2px 0 #fff, 0 0 24px rgba(255,255,255,.9); }
+.bi-s { position: absolute; font-style: normal; color: #fff; text-shadow: 0 0 12px #FF4FA8; animation: bk-tw 1.6s ease-in-out infinite; }
+.bi-s.s1 { left: 18%; top: 22%; font-size: 26px; } .bi-s.s2 { right: 20%; top: 30%; font-size: 20px; animation-delay: .5s; } .bi-s.s3 { left: 30%; bottom: 22%; font-size: 18px; animation-delay: 1s; }
+.bi-lock { position: absolute; right: 10px; top: 50%; width: 38px; transform: translateY(-50%); }
+.bi-lock svg { width: 100%; display: block; }
+
+/* ─ erişilebilirlik ve performans ─ */
+html.simple .bk-decor, html.simple .bi { display: none; }
+html.simple body { background: var(--bg); }
+@media (prefers-reduced-motion: reduce) {
+  .bk-spark, .bk-petal, .bk-bow, .bk-pendant, .bk-bfly, .ha-arch, .ha-glow, .ha-s, .brand::before { animation: none; }
+  .bk-petal, .bk-bfly { display: none; } .bk-spark { opacity: .6; } .bi { display: none; }
+}
